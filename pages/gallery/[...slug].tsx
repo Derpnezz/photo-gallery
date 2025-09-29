@@ -42,6 +42,35 @@ const GalleryPage: NextPage = () => {
     }
   }, [slug]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!selectedMedia) return;
+
+      switch (event.key) {
+        case 'ArrowLeft':
+          event.preventDefault();
+          navigateMedia('prev');
+          break;
+        case 'ArrowRight':
+          event.preventDefault();
+          navigateMedia('next');
+          break;
+        case 'Escape':
+          event.preventDefault();
+          closeLightbox();
+          break;
+      }
+    };
+
+    if (selectedMedia) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [selectedMedia]);
+
   const fetchGalleryData = async (folderPath: string) => {
     try {
       setLoading(true);
@@ -101,6 +130,15 @@ const GalleryPage: NextPage = () => {
     }
     
     setSelectedMedia(galleryData.files[newIndex]);
+  };
+
+  const downloadMedia = (media: MediaFile) => {
+    const link = document.createElement('a');
+    link.href = media.publicPath;
+    link.download = media.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (loading) {
@@ -262,9 +300,18 @@ const GalleryPage: NextPage = () => {
             </div>
             
             <div className={styles.mediaDetails}>
-              <h3>{selectedMedia.name}</h3>
-              <p>Type: {selectedMedia.type}</p>
-              <p>Size: {(selectedMedia.size / 1024 / 1024).toFixed(2)} MB</p>
+              <div className={styles.mediaInfo}>
+                <h3>{selectedMedia.name}</h3>
+                <p>Type: {selectedMedia.type}</p>
+                <p>Size: {(selectedMedia.size / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+              <button 
+                className={styles.downloadButton}
+                onClick={() => downloadMedia(selectedMedia)}
+                title="Download"
+              >
+                ⬇ Download
+              </button>
             </div>
           </div>
         </div>

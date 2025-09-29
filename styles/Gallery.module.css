@@ -293,6 +293,14 @@
   padding: 1rem;
   border-radius: 8px;
   border: 1px solid #5f6368;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.mediaDetails .mediaInfo {
+  flex: 1;
 }
 
 .mediaDetails h3 {
@@ -306,6 +314,26 @@
   font-size: 0.9rem;
   opacity: 0.9;
   color: #9aa0a6;
+}
+
+.downloadButton {
+  background: #8ab4f8;
+  color: #202124;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.downloadButton:hover {
+  background: #669df6;
 }
 
 /* Responsive design */
@@ -366,5 +394,15 @@
   
   .nextButton {
     right: 10px;
+  }
+  
+  .mediaDetails {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .downloadButton {
+    align-self: flex-start;
+    margin-top: 0.5rem;
   }
 }
