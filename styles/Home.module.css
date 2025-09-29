@@ -108,6 +108,13 @@
   margin-left: 0.2rem;
 }
 
+.loading {
+  text-align: center;
+  color: #666;
+  font-size: 1.2rem;
+  margin: 2rem 0;
+}
+
 @media (max-width: 600px) {
   .grid {
     width: 100%;
