@@ -2,6 +2,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import styles from "../styles/Home.module.css";
 
@@ -9,6 +10,7 @@ interface Folder {
   name: string;
   path: string;
   slug: string;
+  thumbnail?: string;
 }
 
 const Home: NextPage = () => {
@@ -23,7 +25,29 @@ const Home: NextPage = () => {
     try {
       const response = await fetch('/api/gallery/folders');
       const data = await response.json();
-      setFolders(data);
+      
+      // Get thumbnail for each folder
+      const foldersWithThumbnails = await Promise.all(
+        data.map(async (folder: Folder) => {
+          try {
+            const galleryResponse = await fetch(`/api/gallery/${folder.slug}`);
+            const galleryData = await galleryResponse.json();
+            const firstImage = galleryData.files?.find((file: any) => file.type === 'image');
+            
+            return {
+              ...folder,
+              thumbnail: firstImage?.publicPath || '/replit.svg'
+            };
+          } catch {
+            return {
+              ...folder,
+              thumbnail: '/replit.svg'
+            };
+          }
+        })
+      );
+      
+      setFolders(foldersWithThumbnails);
     } catch (error) {
       console.error('Error fetching folders:', error);
     } finally {
@@ -40,22 +64,35 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
-        <h1 className={styles.title}>Photo Gallery</h1>
-
-        <p className={styles.description}>
-          Browse your photo collections organized by folders
-        </p>
+        <h1 className={styles.title}>Albums</h1>
 
         {loading ? (
-          <div className={styles.loading}>Loading galleries...</div>
+          <div className={styles.loading}>Loading albums...</div>
         ) : (
-          <div className={styles.grid}>
+          <div className={styles.albumGrid}>
             {folders.map((folder) => (
-              <Link key={folder.slug} href={`/gallery/${folder.slug}`} className={styles.card}>
-                <h2>{folder.name} &rarr;</h2>
-                <p>View photos in {folder.path}</p>
+              <Link key={folder.slug} href={`/gallery/${folder.slug}`} className={styles.albumCard}>
+                <div className={styles.albumThumbnail}>
+                  <Image
+                    src={folder.thumbnail || '/replit.svg'}
+                    alt={folder.name}
+                    width={400}
+                    height={300}
+                    className={styles.thumbnailImage}
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <div className={styles.albumOverlay}>
+                    <h3 className={styles.albumTitle}>{folder.name}</h3>
+                  </div>
+                </div>
               </Link>
             ))}
+          </div>
+        )}
+
+        {!loading && folders.length === 0 && (
+          <div className={styles.emptyState}>
+            No albums found. Add some photos to the public/photos directory.
           </div>
         )}
       </main>

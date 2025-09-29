@@ -76,6 +76,55 @@
   font-size: 1.1rem;
 }
 
+.subFoldersSection {
+  margin-bottom: 2rem;
+}
+
+.photosSection {
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.3rem;
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.subFoldersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.subFolderCard {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-decoration: none;
+  color: #333;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.subFolderCard:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.folderIcon {
+  font-size: 1.5rem;
+  margin-right: 0.8rem;
+}
+
+.folderName {
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
 .mediaGrid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

@@ -19,6 +19,13 @@ interface MediaFile {
 interface GalleryData {
   folder: string;
   files: MediaFile[];
+  subFolders: SubFolder[];
+}
+
+interface SubFolder {
+  name: string;
+  path: string;
+  slug: string;
 }
 
 const GalleryPage: NextPage = () => {
@@ -143,8 +150,35 @@ const GalleryPage: NextPage = () => {
         <h1 className={styles.title}>{galleryData.folder}</h1>
         
         <div className={styles.mediaCount}>
+          {galleryData.subFolders?.length > 0 && (
+            <span>{galleryData.subFolders.length} folders, </span>
+          )}
           {galleryData.files.length} {galleryData.files.length === 1 ? 'item' : 'items'}
         </div>
+
+        {galleryData.subFolders && galleryData.subFolders.length > 0 && (
+          <div className={styles.subFoldersSection}>
+            <h2 className={styles.sectionTitle}>Folders</h2>
+            <div className={styles.subFoldersGrid}>
+              {galleryData.subFolders.map((folder) => (
+                <Link 
+                  key={folder.slug} 
+                  href={`/gallery/${folder.slug}`} 
+                  className={styles.subFolderCard}
+                >
+                  <div className={styles.folderIcon}>📁</div>
+                  <span className={styles.folderName}>{folder.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {galleryData.files.length > 0 && (
+          <div className={styles.photosSection}>
+            <h2 className={styles.sectionTitle}>Photos</h2>
+          </div>
+        )}
 
         <div className={styles.mediaGrid}>
           {galleryData.files.map((file) => (

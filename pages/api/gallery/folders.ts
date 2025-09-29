@@ -11,33 +11,24 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(404).json({ error: 'Photos directory not found' });
     }
 
-    function getFoldersRecursively(dir: string, relativePath: string = ''): any[] {
-      const items = fs.readdirSync(dir);
-      const folders: any[] = [];
+    const items = fs.readdirSync(photosDir);
+    const folders: any[] = [];
 
-      items.forEach(item => {
-        const fullPath = path.join(dir, item);
-        const stat = fs.statSync(fullPath);
-        
-        if (stat.isDirectory()) {
-          const folderRelativePath = relativePath ? `${relativePath}/${item}` : item;
-          const subFolders = getFoldersRecursively(fullPath, folderRelativePath);
-          
-          folders.push({
-            name: item,
-            path: folderRelativePath,
-            slug: folderRelativePath.replace(/\s+/g, '-').toLowerCase(),
-          });
-          
-          folders.push(...subFolders);
-        }
-      });
+    items.forEach(item => {
+      const fullPath = path.join(photosDir, item);
+      const stat = fs.statSync(fullPath);
+      
+      if (stat.isDirectory()) {
+        folders.push({
+          name: item,
+          path: item,
+          slug: item.replace(/\s+/g, '-').toLowerCase(),
+        });
+      }
+    });
 
-      return folders.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    const folders = getFoldersRecursively(photosDir);
-    res.status(200).json(folders);
+    const sortedFolders = folders.sort((a, b) => a.name.localeCompare(b.name));
+    res.status(200).json(sortedFolders);
   } catch (error) {
     console.error('Error reading folders:', error);
     res.status(500).json({ error: 'Failed to read folders' });

@@ -25,44 +25,41 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(404).json({ error: 'Folder not found' });
     }
 
-    function getMediaFilesRecursively(dir: string, relativePath: string = ''): any[] {
-      const items = fs.readdirSync(dir);
-      const mediaFiles: any[] = [];
+    const items = fs.readdirSync(fullPath);
+    const mediaFiles: any[] = [];
+    const subFolders: any[] = [];
 
-      items.forEach(item => {
-        const fullItemPath = path.join(dir, item);
-        const stat = fs.statSync(fullItemPath);
-        
-        if (stat.isDirectory()) {
-          const subPath = relativePath ? `${relativePath}/${item}` : item;
-          const subFiles = getMediaFilesRecursively(fullItemPath, subPath);
-          mediaFiles.push(...subFiles);
-        } else {
-          const ext = path.extname(item).toLowerCase();
-          if (SUPPORTED_EXTENSIONS.includes(ext)) {
-            const filePath = relativePath ? `${relativePath}/${item}` : item;
-            const publicPath = `/photos/${folderPath}/${filePath}`;
-            
-            mediaFiles.push({
-              name: item,
-              path: filePath,
-              publicPath: publicPath,
-              type: ['.mp4', '.webm', '.ogg', '.avi', '.mov', '.wmv', '.flv', '.mkv', '.m4v'].includes(ext) ? 'video' : 'image',
-              size: stat.size,
-              modified: stat.mtime
-            });
-          }
+    items.forEach(item => {
+      const fullItemPath = path.join(fullPath, item);
+      const stat = fs.statSync(fullItemPath);
+      
+      if (stat.isDirectory()) {
+        subFolders.push({
+          name: item,
+          path: `${folderPath}/${item}`,
+          slug: `${folderPath}/${item}`.replace(/\s+/g, '-').toLowerCase()
+        });
+      } else {
+        const ext = path.extname(item).toLowerCase();
+        if (SUPPORTED_EXTENSIONS.includes(ext)) {
+          const publicPath = `/photos/${folderPath}/${item}`;
+          
+          mediaFiles.push({
+            name: item,
+            path: item,
+            publicPath: publicPath,
+            type: ['.mp4', '.webm', '.ogg', '.avi', '.mov', '.wmv', '.flv', '.mkv', '.m4v'].includes(ext) ? 'video' : 'image',
+            size: stat.size,
+            modified: stat.mtime
+          });
         }
-      });
+      }
+    });
 
-      return mediaFiles.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    const mediaFiles = getMediaFilesRecursively(fullPath);
-    
     res.status(200).json({
       folder: folderPath,
-      files: mediaFiles
+      files: mediaFiles.sort((a, b) => a.name.localeCompare(b.name)),
+      subFolders: subFolders.sort((a, b) => a.name.localeCompare(b.name))
     });
   } catch (error) {
     console.error('Error reading media files:', error);
