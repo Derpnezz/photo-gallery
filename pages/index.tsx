@@ -36,12 +36,12 @@ const Home: NextPage = () => {
             
             return {
               ...folder,
-              thumbnail: firstImage?.publicPath || '/replit.svg'
+              thumbnail: firstImage?.publicPath || '/placeholder.svg'
             };
           } catch {
             return {
               ...folder,
-              thumbnail: '/replit.svg'
+              thumbnail: '/placeholder.svg'
             };
           }
         })
@@ -74,7 +74,7 @@ const Home: NextPage = () => {
               <Link key={folder.slug} href={`/gallery/${folder.slug}`} className={styles.albumCard}>
                 <div className={styles.albumThumbnail}>
                   <Image
-                    src={folder.thumbnail || '/replit.svg'}
+                    src={folder.thumbnail || '/placeholder.svg'}
                     alt={folder.name}
                     width={400}
                     height={300}
