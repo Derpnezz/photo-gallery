@@ -59,8 +59,8 @@ const Home: NextPage = () => {
     <div className={styles.container}>
       <Head>
         <title>Photo Gallery</title>
-        <meta name="description" content="Dynamic photo gallery with folders and media" />
-        <link rel="icon" href="/favicon.ico" />
+        <meta name="description" content="Gabriel Yee's photo gallery" />
+        <link rel="icon" href="/replit.svg" />
       </Head>
 
       <main className={styles.main}>
