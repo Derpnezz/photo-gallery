@@ -72,19 +72,8 @@ const Home: NextPage = () => {
           <div className={styles.albumGrid}>
             {folders.map((folder) => (
               <Link key={folder.slug} href={`/gallery/${folder.slug}`} className={styles.albumCard}>
-                <div className={styles.albumThumbnail}>
-                  <Image
-                    src={folder.thumbnail || '/placeholder.svg'}
-                    alt={folder.name}
-                    width={400}
-                    height={300}
-                    className={styles.thumbnailImage}
-                    style={{ objectFit: 'cover' }}
-                  />
-                  <div className={styles.albumOverlay}>
-                    <h3 className={styles.albumTitle}>{folder.name}</h3>
-                  </div>
-                </div>
+                <div className={styles.folderIcon}>📁</div>
+                <span className={styles.folderName}>{folder.name}</span>
               </Link>
             ))}
           </div>

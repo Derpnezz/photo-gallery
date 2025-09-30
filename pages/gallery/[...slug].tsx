@@ -34,6 +34,7 @@ const GalleryPage: NextPage = () => {
   const [galleryData, setGalleryData] = useState<GalleryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -261,10 +262,28 @@ const GalleryPage: NextPage = () => {
       {selectedMedia && (
         <div className={styles.lightbox} onClick={closeLightbox}>
           <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.closeButton} onClick={closeLightbox}>
-              ×
-            </button>
+            {/* Top Controls */}
+            <div className={styles.topControls}>
+              <button 
+                className={styles.infoButton}
+                onClick={() => setShowInfoModal(true)}
+                title="Info"
+              >
+                ℹ
+              </button>
+              <button 
+                className={styles.downloadButton}
+                onClick={() => downloadMedia(selectedMedia)}
+                title="Download"
+              >
+                ⬇
+              </button>
+              <button className={styles.closeButton} onClick={closeLightbox}>
+                ×
+              </button>
+            </div>
             
+            {/* Navigation Arrows */}
             <button 
               className={`${styles.navButton} ${styles.prevButton}`}
               onClick={() => navigateMedia('prev')}
@@ -298,22 +317,42 @@ const GalleryPage: NextPage = () => {
                 />
               )}
             </div>
-            
-            <div className={styles.mediaDetails}>
-              <div className={styles.mediaInfo}>
-                <h3>{selectedMedia.name}</h3>
-                <p>Type: {selectedMedia.type}</p>
-                <p>Size: {(selectedMedia.size / 1024 / 1024).toFixed(2)} MB</p>
-              </div>
-              <button 
-                className={styles.downloadButton}
-                onClick={() => downloadMedia(selectedMedia)}
-                title="Download"
-              >
-                ⬇ Download
-              </button>
-            </div>
           </div>
+
+          {/* Info Modal */}
+          {showInfoModal && (
+            <div className={styles.infoModal} onClick={() => setShowInfoModal(false)}>
+              <div className={styles.infoModalContent} onClick={(e) => e.stopPropagation()}>
+                <div className={styles.infoModalHeader}>
+                  <h3>Media Information</h3>
+                  <button 
+                    className={styles.infoModalClose}
+                    onClick={() => setShowInfoModal(false)}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className={styles.infoModalBody}>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Name:</span>
+                    <span className={styles.infoValue}>{selectedMedia.name}</span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Type:</span>
+                    <span className={styles.infoValue}>{selectedMedia.type}</span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Size:</span>
+                    <span className={styles.infoValue}>{(selectedMedia.size / 1024 / 1024).toFixed(2)} MB</span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Modified:</span>
+                    <span className={styles.infoValue}>{new Date(selectedMedia.modified).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
