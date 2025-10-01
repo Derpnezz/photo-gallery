@@ -58,9 +58,9 @@ const Home: NextPage = () => {
   return (
     <div className={styles.container}>
       <Head>
-        <title>Photo Gallery</title>
+        <title>GY Photo Gallery</title>
         <meta name="description" content="Gabriel Yee's photo gallery" />
-        <link rel="icon" href="/replit.svg" />
+        <link rel="icon" href="/placeholder.png" />
       </Head>
 
       <main className={styles.main}>

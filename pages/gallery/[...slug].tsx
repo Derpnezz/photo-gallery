@@ -168,8 +168,12 @@ const GalleryPage: NextPage = () => {
   return (
     <div className={styles.container}>
       <Head>
+        { /*
         <title>{galleryData.folder} - Photo Gallery</title>
+        */}
+        <title>{galleryData.folder}</title>
         <meta name="description" content={`Photos from ${galleryData.folder}`} />
+        <link rel="icon" href="/placeholder.png" />
       </Head>
 
       <nav className={styles.breadcrumbs}>
