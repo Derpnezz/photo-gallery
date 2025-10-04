@@ -409,17 +409,6 @@
   cursor: not-allowed;
 }
 
-.zoomButton {
-  /* Inherits from .topControls button */
-}
-
-.zoomLevel {
-  color: #e8eaed;
-  font-size: 0.9rem;
-  min-width: 50px;
-  text-align: center;
-}
-
 .closeButton {
   /* Inherits from .topControls button */
 }
@@ -470,13 +459,6 @@
   max-width: 90vw;
   max-height: 80vh;
   overflow: auto;
-}
-
-.zoomableImageWrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform-origin: center center;
 }
 
 .lightboxMedia {
@@ -659,11 +641,6 @@
     width: 36px;
     height: 36px;
     font-size: 0.9rem;
-  }
-
-  .zoomLevel {
-    font-size: 0.8rem;
-    min-width: 45px;
   }
   
   .navButton {

@@ -44,8 +44,6 @@ const GalleryPage: NextPage = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
-  const [zoomLevel, setZoomLevel] = useState(1);
-  const lightboxImageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (slug && Array.isArray(slug)) {
@@ -70,15 +68,6 @@ const GalleryPage: NextPage = () => {
           event.preventDefault();
           closeLightbox();
           break;
-        case '+':
-        case '=':
-          event.preventDefault();
-          handleZoom('in');
-          break;
-        case '-':
-          event.preventDefault();
-          handleZoom('out');
-          break;
       }
     };
 
@@ -89,7 +78,7 @@ const GalleryPage: NextPage = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedMedia, zoomLevel]);
+  }, [selectedMedia]);
 
   const fetchGalleryData = async (folderPath: string) => {
     try {
@@ -162,12 +151,10 @@ const GalleryPage: NextPage = () => {
 
   const openLightbox = (media: MediaFile) => {
     setSelectedMedia(media);
-    setZoomLevel(1);
   };
 
   const closeLightbox = () => {
     setSelectedMedia(null);
-    setZoomLevel(1);
   };
 
   const navigateMedia = (direction: 'prev' | 'next') => {
@@ -184,17 +171,6 @@ const GalleryPage: NextPage = () => {
     }
     
     setSelectedMedia(displayedFiles[newIndex]);
-    setZoomLevel(1);
-  };
-
-  const handleZoom = (direction: 'in' | 'out') => {
-    setZoomLevel(prev => {
-      if (direction === 'in') {
-        return Math.min(prev + 0.25, 3);
-      } else {
-        return Math.max(prev - 0.25, 0.5);
-      }
-    });
   };
 
   const downloadMedia = (media: MediaFile) => {
@@ -255,7 +231,7 @@ const GalleryPage: NextPage = () => {
     if (selectedFiles.size === 0) return;
     
     const JSZip = (await import('jszip')).default;
-    const zip = new JSZip();
+    const zip = new (JSZip as any)();
     
     const displayedFiles = getSortedAndFilteredFiles();
     const filesToDownload = displayedFiles.filter(f => selectedFiles.has(f.publicPath));
@@ -498,27 +474,6 @@ const GalleryPage: NextPage = () => {
           <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
             {/* Top Controls */}
             <div className={styles.topControls}>
-              {selectedMedia.type === 'image' && (
-                <>
-                  <button 
-                    className={styles.zoomButton}
-                    onClick={() => handleZoom('out')}
-                    title="Zoom Out (-)"
-                    disabled={zoomLevel <= 0.5}
-                  >
-                    −
-                  </button>
-                  <span className={styles.zoomLevel}>{Math.round(zoomLevel * 100)}%</span>
-                  <button 
-                    className={styles.zoomButton}
-                    onClick={() => handleZoom('in')}
-                    title="Zoom In (+)"
-                    disabled={zoomLevel >= 3}
-                  >
-                    +
-                  </button>
-                </>
-              )}
               <button 
                 className={styles.infoButton}
                 onClick={() => setShowInfoModal(true)}
@@ -553,24 +508,16 @@ const GalleryPage: NextPage = () => {
               ›
             </button>
 
-            <div className={styles.mediaContainer} ref={lightboxImageRef}>
+            <div className={styles.mediaContainer}>
               {selectedMedia.type === 'image' ? (
-                <div 
-                  className={styles.zoomableImageWrapper}
-                  style={{ 
-                    transform: `scale(${zoomLevel})`,
-                    transition: 'transform 0.3s ease'
-                  }}
-                >
-                  <Image
-                    src={selectedMedia.publicPath}
-                    alt={selectedMedia.name}
-                    width={1200}
-                    height={800}
-                    className={styles.lightboxMedia}
-                    style={{ objectFit: 'contain' }}
-                  />
-                </div>
+                <Image
+                  src={selectedMedia.publicPath}
+                  alt={selectedMedia.name}
+                  width={1200}
+                  height={800}
+                  className={styles.lightboxMedia}
+                  style={{ objectFit: 'contain' }}
+                />
               ) : (
                 <video
                   src={selectedMedia.publicPath}
