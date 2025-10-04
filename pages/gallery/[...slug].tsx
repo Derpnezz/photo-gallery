@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from '../../styles/Gallery.module.css';
 
 interface MediaFile {
@@ -28,6 +28,9 @@ interface SubFolder {
   slug: string;
 }
 
+type SortOption = 'name' | 'date' | 'size' | 'type';
+type FilterOption = 'all' | 'images' | 'videos';
+
 const GalleryPage: NextPage = () => {
   const router = useRouter();
   const { slug } = router.query;
@@ -36,6 +39,13 @@ const GalleryPage: NextPage = () => {
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<SortOption>('name');
+  const [filterBy, setFilterBy] = useState<FilterOption>('all');
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const lightboxImageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (slug && Array.isArray(slug)) {
@@ -60,6 +70,15 @@ const GalleryPage: NextPage = () => {
           event.preventDefault();
           closeLightbox();
           break;
+        case '+':
+        case '=':
+          event.preventDefault();
+          handleZoom('in');
+          break;
+        case '-':
+          event.preventDefault();
+          handleZoom('out');
+          break;
       }
     };
 
@@ -70,7 +89,7 @@ const GalleryPage: NextPage = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedMedia]);
+  }, [selectedMedia, zoomLevel]);
 
   const fetchGalleryData = async (folderPath: string) => {
     try {
@@ -110,27 +129,72 @@ const GalleryPage: NextPage = () => {
     return breadcrumbs;
   };
 
+  const getSortedAndFilteredFiles = () => {
+    if (!galleryData) return [];
+    
+    let files = [...galleryData.files];
+    
+    // Apply filter
+    if (filterBy === 'images') {
+      files = files.filter(f => f.type === 'image');
+    } else if (filterBy === 'videos') {
+      files = files.filter(f => f.type === 'video');
+    }
+    
+    // Apply sort
+    files.sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case 'date':
+          return new Date(b.modified).getTime() - new Date(a.modified).getTime();
+        case 'size':
+          return b.size - a.size;
+        case 'type':
+          return a.type.localeCompare(b.type);
+        default:
+          return 0;
+      }
+    });
+    
+    return files;
+  };
+
   const openLightbox = (media: MediaFile) => {
     setSelectedMedia(media);
+    setZoomLevel(1);
   };
 
   const closeLightbox = () => {
     setSelectedMedia(null);
+    setZoomLevel(1);
   };
 
   const navigateMedia = (direction: 'prev' | 'next') => {
     if (!selectedMedia || !galleryData) return;
     
-    const currentIndex = galleryData.files.findIndex(file => file.publicPath === selectedMedia.publicPath);
+    const displayedFiles = getSortedAndFilteredFiles();
+    const currentIndex = displayedFiles.findIndex(file => file.publicPath === selectedMedia.publicPath);
     let newIndex;
     
     if (direction === 'prev') {
-      newIndex = currentIndex > 0 ? currentIndex - 1 : galleryData.files.length - 1;
+      newIndex = currentIndex > 0 ? currentIndex - 1 : displayedFiles.length - 1;
     } else {
-      newIndex = currentIndex < galleryData.files.length - 1 ? currentIndex + 1 : 0;
+      newIndex = currentIndex < displayedFiles.length - 1 ? currentIndex + 1 : 0;
     }
     
-    setSelectedMedia(galleryData.files[newIndex]);
+    setSelectedMedia(displayedFiles[newIndex]);
+    setZoomLevel(1);
+  };
+
+  const handleZoom = (direction: 'in' | 'out') => {
+    setZoomLevel(prev => {
+      if (direction === 'in') {
+        return Math.min(prev + 0.25, 3);
+      } else {
+        return Math.max(prev - 0.25, 0.5);
+      }
+    });
   };
 
   const downloadMedia = (media: MediaFile) => {
@@ -140,6 +204,82 @@ const GalleryPage: NextPage = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode);
+    if (isSelectionMode) {
+      setSelectedFiles(new Set());
+      setLastSelectedIndex(null);
+    }
+  };
+
+  const handleFileSelect = (file: MediaFile, index: number, event: React.MouseEvent) => {
+    if (!isSelectionMode) return;
+    
+    const newSelected = new Set(selectedFiles);
+    
+    if (event.shiftKey && lastSelectedIndex !== null) {
+      // Shift+click: select range
+      const displayedFiles = getSortedAndFilteredFiles();
+      const start = Math.min(lastSelectedIndex, index);
+      const end = Math.max(lastSelectedIndex, index);
+      
+      for (let i = start; i <= end; i++) {
+        newSelected.add(displayedFiles[i].publicPath);
+      }
+    } else {
+      // Regular click: toggle selection
+      if (newSelected.has(file.publicPath)) {
+        newSelected.delete(file.publicPath);
+      } else {
+        newSelected.add(file.publicPath);
+      }
+      setLastSelectedIndex(index);
+    }
+    
+    setSelectedFiles(newSelected);
+  };
+
+  const selectAll = () => {
+    const displayedFiles = getSortedAndFilteredFiles();
+    setSelectedFiles(new Set(displayedFiles.map(f => f.publicPath)));
+  };
+
+  const deselectAll = () => {
+    setSelectedFiles(new Set());
+    setLastSelectedIndex(null);
+  };
+
+  const downloadSelectedAsZip = async () => {
+    if (selectedFiles.size === 0) return;
+    
+    const JSZip = (await import('jszip')).default;
+    const zip = new JSZip();
+    
+    const displayedFiles = getSortedAndFilteredFiles();
+    const filesToDownload = displayedFiles.filter(f => selectedFiles.has(f.publicPath));
+    
+    // Fetch and add files to zip
+    for (const file of filesToDownload) {
+      try {
+        const response = await fetch(file.publicPath);
+        const blob = await response.blob();
+        zip.file(file.name, blob);
+      } catch (error) {
+        console.error(`Failed to add ${file.name} to zip:`, error);
+      }
+    }
+    
+    // Generate and download zip
+    const content = await zip.generateAsync({ type: 'blob' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = `${galleryData?.folder.split('/').pop() || 'gallery'}-photos.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   };
 
   if (loading) {
@@ -218,18 +358,102 @@ const GalleryPage: NextPage = () => {
         )}
 
         {galleryData.files.length > 0 && (
-          <div className={styles.photosSection}>
-            <h2 className={styles.sectionTitle}>Photos</h2>
-          </div>
+          <>
+            <div className={styles.controlsSection}>
+              <div className={styles.sortFilterControls}>
+                <div className={styles.controlGroup}>
+                  <label htmlFor="sortBy">Sort by:</label>
+                  <select 
+                    id="sortBy"
+                    value={sortBy} 
+                    onChange={(e) => setSortBy(e.target.value as SortOption)}
+                    className={styles.select}
+                  >
+                    <option value="name">Name</option>
+                    <option value="date">Date</option>
+                    <option value="size">Size</option>
+                    <option value="type">Type</option>
+                  </select>
+                </div>
+
+                <div className={styles.controlGroup}>
+                  <label htmlFor="filterBy">Filter:</label>
+                  <select 
+                    id="filterBy"
+                    value={filterBy} 
+                    onChange={(e) => setFilterBy(e.target.value as FilterOption)}
+                    className={styles.select}
+                  >
+                    <option value="all">All Media</option>
+                    <option value="images">Images Only</option>
+                    <option value="videos">Videos Only</option>
+                  </select>
+                </div>
+
+                <button 
+                  className={`${styles.selectionModeButton} ${isSelectionMode ? styles.active : ''}`}
+                  onClick={toggleSelectionMode}
+                >
+                  {isSelectionMode ? '✓ Selection Mode' : 'Select Photos'}
+                </button>
+              </div>
+
+              {isSelectionMode && (
+                <div className={styles.selectionControls}>
+                  <span className={styles.selectedCount}>
+                    {selectedFiles.size} selected
+                  </span>
+                  <button 
+                    className={styles.actionButton}
+                    onClick={selectAll}
+                  >
+                    Select All
+                  </button>
+                  <button 
+                    className={styles.actionButton}
+                    onClick={deselectAll}
+                  >
+                    Deselect All
+                  </button>
+                  <button 
+                    className={`${styles.actionButton} ${styles.downloadButton}`}
+                    onClick={downloadSelectedAsZip}
+                    disabled={selectedFiles.size === 0}
+                  >
+                    Download ZIP ({selectedFiles.size})
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className={styles.photosSection}>
+              <h2 className={styles.sectionTitle}>Photos</h2>
+            </div>
+          </>
         )}
 
         <div className={styles.mediaGrid}>
-          {galleryData.files.map((file) => (
+          {getSortedAndFilteredFiles().map((file, index) => (
             <div
               key={file.publicPath}
-              className={styles.mediaItem}
-              onClick={() => openLightbox(file)}
+              className={`${styles.mediaItem} ${isSelectionMode ? styles.selectable : ''} ${selectedFiles.has(file.publicPath) ? styles.selected : ''}`}
+              onClick={(e) => {
+                if (isSelectionMode) {
+                  handleFileSelect(file, index, e);
+                } else {
+                  openLightbox(file);
+                }
+              }}
             >
+              {isSelectionMode && (
+                <div className={styles.checkbox}>
+                  <input 
+                    type="checkbox" 
+                    checked={selectedFiles.has(file.publicPath)}
+                    onChange={() => {}}
+                  />
+                </div>
+              )}
               {file.type === 'image' ? (
                 <Image
                   src={file.publicPath}
@@ -256,6 +480,12 @@ const GalleryPage: NextPage = () => {
           ))}
         </div>
 
+        {getSortedAndFilteredFiles().length === 0 && galleryData.files.length > 0 && (
+          <div className={styles.emptyState}>
+            No {filterBy === 'images' ? 'images' : filterBy === 'videos' ? 'videos' : 'media files'} found.
+          </div>
+        )}
+
         {galleryData.files.length === 0 && (
           <div className={styles.emptyState}>
             No media files found in this folder.
@@ -268,6 +498,27 @@ const GalleryPage: NextPage = () => {
           <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
             {/* Top Controls */}
             <div className={styles.topControls}>
+              {selectedMedia.type === 'image' && (
+                <>
+                  <button 
+                    className={styles.zoomButton}
+                    onClick={() => handleZoom('out')}
+                    title="Zoom Out (-)"
+                    disabled={zoomLevel <= 0.5}
+                  >
+                    −
+                  </button>
+                  <span className={styles.zoomLevel}>{Math.round(zoomLevel * 100)}%</span>
+                  <button 
+                    className={styles.zoomButton}
+                    onClick={() => handleZoom('in')}
+                    title="Zoom In (+)"
+                    disabled={zoomLevel >= 3}
+                  >
+                    +
+                  </button>
+                </>
+              )}
               <button 
                 className={styles.infoButton}
                 onClick={() => setShowInfoModal(true)}
@@ -302,22 +553,32 @@ const GalleryPage: NextPage = () => {
               ›
             </button>
 
-            <div className={styles.mediaContainer}>
+            <div className={styles.mediaContainer} ref={lightboxImageRef}>
               {selectedMedia.type === 'image' ? (
-                <Image
-                  src={selectedMedia.publicPath}
-                  alt={selectedMedia.name}
-                  width={1200}
-                  height={800}
-                  className={styles.lightboxMedia}
-                  style={{ objectFit: 'contain' }}
-                />
+                <div 
+                  className={styles.zoomableImageWrapper}
+                  style={{ 
+                    transform: `scale(${zoomLevel})`,
+                    transition: 'transform 0.3s ease'
+                  }}
+                >
+                  <Image
+                    src={selectedMedia.publicPath}
+                    alt={selectedMedia.name}
+                    width={1200}
+                    height={800}
+                    className={styles.lightboxMedia}
+                    style={{ objectFit: 'contain' }}
+                  />
+                </div>
               ) : (
                 <video
                   src={selectedMedia.publicPath}
                   controls
+                  controlsList="nodownload"
                   className={styles.lightboxMedia}
                   style={{ objectFit: 'contain' }}
+                  autoPlay
                 />
               )}
             </div>
