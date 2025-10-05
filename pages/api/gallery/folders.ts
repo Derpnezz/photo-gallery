@@ -1,36 +1,51 @@
-
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
 
+interface Folder {
+  name: string;
+  path: string;
+  slug: string;
+  type: 'folder' | 'file';
+  isDirectory: boolean;
+}
+
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
+  const usbBasePath = '/media/ph0to/USB20FD';
+  
+  if (!fs.existsSync(usbBasePath)) {
+    return res.status(404).json({ 
+      error: 'USB drive not found',
+      path: usbBasePath
+    });
+  }
+
   try {
-    const photosDir = path.join(process.cwd(), 'public', 'photos');
+    const items = fs.readdirSync(usbBasePath, { withFileTypes: true });
     
-    if (!fs.existsSync(photosDir)) {
-      return res.status(404).json({ error: 'Photos directory not found' });
-    }
-
-    const items = fs.readdirSync(photosDir);
-    const folders: any[] = [];
-
-    items.forEach(item => {
-      const fullPath = path.join(photosDir, item);
-      const stat = fs.statSync(fullPath);
-      
-      if (stat.isDirectory()) {
-        folders.push({
-          name: item,
-          path: item,
-          slug: item.replace(/\s+/g, '-').toLowerCase(),
-        });
+    const filteredItems = items.filter(item => {
+      if (item.name === 'System Volume Information' || 
+          item.name.startsWith('.') || 
+          item.name === '$RECYCLE.BIN' ||
+          item.name === '.Trashes') {
+        return false;
       }
+      return true;
     });
 
-    const sortedFolders = folders.sort((a, b) => a.name.localeCompare(b.name));
-    res.status(200).json(sortedFolders);
+    const folders: Folder[] = filteredItems.map(item => ({
+      name: item.name,
+      path: path.join(usbBasePath, item.name),
+      slug: item.name, // Use raw name for slug
+      type: item.isDirectory() ? 'folder' : 'file',
+      isDirectory: item.isDirectory()
+    }));
+
+    res.status(200).json(folders);
+    
   } catch (error) {
-    console.error('Error reading folders:', error);
-    res.status(500).json({ error: 'Failed to read folders' });
+    res.status(500).json({ 
+      error: 'Error reading folders'
+    });
   }
 }

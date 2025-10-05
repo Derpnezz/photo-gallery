@@ -1,4 +1,3 @@
-
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
@@ -18,6 +17,7 @@ interface MediaFile {
 
 interface GalleryData {
   folder: string;
+  fullPath: string;
   files: MediaFile[];
   subFolders: SubFolder[];
 }
@@ -46,8 +46,11 @@ const GalleryPage: NextPage = () => {
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (slug && Array.isArray(slug)) {
-      fetchGalleryData(slug.join('/'));
+    if (slug) {
+      // Handle both array slugs (nested folders) and string slugs
+      const folderPath = Array.isArray(slug) ? slug.join('/') : slug;
+      console.log('🔄 Fetching data for slug:', slug, 'Path:', folderPath);
+      fetchGalleryData(folderPath);
     }
   }, [slug]);
 
@@ -83,17 +86,52 @@ const GalleryPage: NextPage = () => {
   const fetchGalleryData = async (folderPath: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/gallery/${folderPath}`);
+      setError(null);
+      
+      console.log('🔍 Fetching gallery data for path:', folderPath);
+      const apiUrl = `/api/gallery/${folderPath}`;
+      console.log('🔍 API URL:', apiUrl);
+      
+      const response = await fetch(apiUrl);
+      
+      console.log('🔍 Response status:', response.status, response.statusText);
       
       if (!response.ok) {
-        throw new Error('Failed to fetch gallery data');
+        // Read the response once and store it
+        const responseText = await response.text();
+        let errorDetails = '';
+        
+        try {
+          // Try to parse as JSON
+          const errorData = JSON.parse(responseText);
+          errorDetails = errorData.error || 'Unknown error';
+          if (errorData.details) {
+            errorDetails += ` (${errorData.details})`;
+          }
+          if (errorData.path) {
+            errorDetails += ` at path: ${errorData.path}`;
+          }
+          console.error('🔍 API Error details:', errorData);
+        } catch {
+          // If not JSON, use the raw text
+          errorDetails = responseText;
+          console.error('🔍 API Error text:', responseText);
+        }
+        
+        throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorDetails}`);
       }
       
+      // For successful responses, parse as JSON
       const data = await response.json();
+      console.log('✅ Gallery data received successfully');
+      console.log('📁 Folder:', data.folder);
+      console.log('📊 Files count:', data.files?.length);
+      console.log('📁 Subfolders count:', data.subFolders?.length);
+      
       setGalleryData(data);
     } catch (error) {
-      console.error('Error fetching gallery data:', error);
-      setError('Failed to load gallery');
+      console.error('❌ Error fetching gallery data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load gallery');
     } finally {
       setLoading(false);
     }
@@ -101,35 +139,43 @@ const GalleryPage: NextPage = () => {
 
   const generateBreadcrumbs = () => {
     if (!galleryData) return [];
-    
-    const pathParts = galleryData.folder.split('/');
+
     const breadcrumbs = [{ name: 'Home', path: '/' }];
-    
-    let currentPath = '';
-    pathParts.forEach((part, index) => {
-      currentPath += (index > 0 ? '/' : '') + part;
-      const slug = currentPath.replace(/\s+/g, '-').toLowerCase();
-      breadcrumbs.push({
-        name: part,
-        path: `/gallery/${slug}`
-      });
-    });
-    
+
+    const fullPath = galleryData.fullPath || (Array.isArray(slug) ? slug.join('/') : slug || '');
+
+    if (fullPath) {
+       const pathParts = fullPath.split('/');
+
+       let currentPath = '';
+       pathParts.forEach((part, index) => {
+          currentPath += (index > 0 ? '/' : '') + part;
+          breadcrumbs.push({
+             name: part,
+             path: `/gallery/${currentPath}`
+          });
+       });
+    } else {
+       breadcrumbs.push({
+          name: galleryData.folder,
+          path: `/gallery/${galleryData.folder}`
+       });
+    }
     return breadcrumbs;
   };
 
   const getSortedAndFilteredFiles = () => {
     if (!galleryData) return [];
-    
+
     let files = [...galleryData.files];
-    
+
     // Apply filter
     if (filterBy === 'images') {
       files = files.filter(f => f.type === 'image');
     } else if (filterBy === 'videos') {
       files = files.filter(f => f.type === 'video');
     }
-    
+
     // Apply sort
     files.sort((a, b) => {
       switch (sortBy) {
@@ -145,7 +191,7 @@ const GalleryPage: NextPage = () => {
           return 0;
       }
     });
-    
+
     return files;
   };
 
@@ -159,17 +205,17 @@ const GalleryPage: NextPage = () => {
 
   const navigateMedia = (direction: 'prev' | 'next') => {
     if (!selectedMedia || !galleryData) return;
-    
+
     const displayedFiles = getSortedAndFilteredFiles();
     const currentIndex = displayedFiles.findIndex(file => file.publicPath === selectedMedia.publicPath);
     let newIndex;
-    
+
     if (direction === 'prev') {
       newIndex = currentIndex > 0 ? currentIndex - 1 : displayedFiles.length - 1;
     } else {
       newIndex = currentIndex < displayedFiles.length - 1 ? currentIndex + 1 : 0;
     }
-    
+
     setSelectedMedia(displayedFiles[newIndex]);
   };
 
@@ -192,15 +238,15 @@ const GalleryPage: NextPage = () => {
 
   const handleFileSelect = (file: MediaFile, index: number, event: React.MouseEvent) => {
     if (!isSelectionMode) return;
-    
+
     const newSelected = new Set(selectedFiles);
-    
+
     if (event.shiftKey && lastSelectedIndex !== null) {
       // Shift+click: select range
       const displayedFiles = getSortedAndFilteredFiles();
       const start = Math.min(lastSelectedIndex, index);
       const end = Math.max(lastSelectedIndex, index);
-      
+
       for (let i = start; i <= end; i++) {
         newSelected.add(displayedFiles[i].publicPath);
       }
@@ -213,7 +259,7 @@ const GalleryPage: NextPage = () => {
       }
       setLastSelectedIndex(index);
     }
-    
+
     setSelectedFiles(newSelected);
   };
 
@@ -229,13 +275,13 @@ const GalleryPage: NextPage = () => {
 
   const downloadSelectedAsZip = async () => {
     if (selectedFiles.size === 0) return;
-    
+
     const JSZip = (await import('jszip')).default;
     const zip = new (JSZip as any)();
-    
+
     const displayedFiles = getSortedAndFilteredFiles();
     const filesToDownload = displayedFiles.filter(f => selectedFiles.has(f.publicPath));
-    
+
     // Fetch and add files to zip
     for (const file of filesToDownload) {
       try {
@@ -246,7 +292,7 @@ const GalleryPage: NextPage = () => {
         console.error(`Failed to add ${file.name} to zip:`, error);
       }
     }
-    
+
     // Generate and download zip
     const content = await zip.generateAsync({ type: 'blob' });
     const link = document.createElement('a');
@@ -270,7 +316,12 @@ const GalleryPage: NextPage = () => {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
-          {error || 'Gallery not found'}
+          <h2>Error Loading Gallery</h2>
+          <p>{error || 'Gallery not found'}</p>
+          <div className={styles.errorDetails}>
+            <p>Current slug: {JSON.stringify(slug)}</p>
+            <p>Check the browser console for detailed error information.</p>
+          </div>
           <Link href="/" className={styles.backButton}>
             ← Back to Home
           </Link>
@@ -284,9 +335,6 @@ const GalleryPage: NextPage = () => {
   return (
     <div className={styles.container}>
       <Head>
-        { /*
-        <title>{galleryData.folder} - Photo Gallery</title>
-        */}
         <title>{galleryData.folder}</title>
         <meta name="description" content={`Photos from ${galleryData.folder}`} />
         <link rel="icon" href="/placeholder.png" />
@@ -307,7 +355,7 @@ const GalleryPage: NextPage = () => {
 
       <main className={styles.main}>
         <h1 className={styles.title}>{galleryData.folder}</h1>
-        
+
         <div className={styles.mediaCount}>
           {galleryData.subFolders?.length > 0 && (
             <span>{galleryData.subFolders.length} folders, </span>
@@ -320,9 +368,9 @@ const GalleryPage: NextPage = () => {
             <h2 className={styles.sectionTitle}>Folders</h2>
             <div className={styles.subFoldersGrid}>
               {galleryData.subFolders.map((folder) => (
-                <Link 
-                  key={folder.slug} 
-                  href={`/gallery/${folder.slug}`} 
+                <Link
+                  key={folder.slug}
+                  href={`/gallery/${folder.slug}`}
                   className={styles.subFolderCard}
                 >
                   <div className={styles.folderIcon}>📁</div>
@@ -339,9 +387,9 @@ const GalleryPage: NextPage = () => {
               <div className={styles.sortFilterControls}>
                 <div className={styles.controlGroup}>
                   <label htmlFor="sortBy">Sort by:</label>
-                  <select 
+                  <select
                     id="sortBy"
-                    value={sortBy} 
+                    value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as SortOption)}
                     className={styles.select}
                   >
@@ -354,9 +402,9 @@ const GalleryPage: NextPage = () => {
 
                 <div className={styles.controlGroup}>
                   <label htmlFor="filterBy">Filter:</label>
-                  <select 
+                  <select
                     id="filterBy"
-                    value={filterBy} 
+                    value={filterBy}
                     onChange={(e) => setFilterBy(e.target.value as FilterOption)}
                     className={styles.select}
                   >
@@ -366,7 +414,7 @@ const GalleryPage: NextPage = () => {
                   </select>
                 </div>
 
-                <button 
+                <button
                   className={`${styles.selectionModeButton} ${isSelectionMode ? styles.active : ''}`}
                   onClick={toggleSelectionMode}
                 >
@@ -379,19 +427,19 @@ const GalleryPage: NextPage = () => {
                   <span className={styles.selectedCount}>
                     {selectedFiles.size} selected
                   </span>
-                  <button 
+                  <button
                     className={styles.actionButton}
                     onClick={selectAll}
                   >
                     Select All
                   </button>
-                  <button 
+                  <button
                     className={styles.actionButton}
                     onClick={deselectAll}
                   >
                     Deselect All
                   </button>
-                  <button 
+                  <button
                     className={`${styles.actionButton} ${styles.downloadButton}`}
                     onClick={downloadSelectedAsZip}
                     disabled={selectedFiles.size === 0}
@@ -423,8 +471,8 @@ const GalleryPage: NextPage = () => {
             >
               {isSelectionMode && (
                 <div className={styles.checkbox}>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     checked={selectedFiles.has(file.publicPath)}
                     onChange={() => {}}
                   />
@@ -474,14 +522,14 @@ const GalleryPage: NextPage = () => {
           <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
             {/* Top Controls */}
             <div className={styles.topControls}>
-              <button 
+              <button
                 className={styles.infoButton}
                 onClick={() => setShowInfoModal(true)}
                 title="Info"
               >
                 ℹ
               </button>
-              <button 
+              <button
                 className={styles.downloadButton}
                 onClick={() => downloadMedia(selectedMedia)}
                 title="Download"
@@ -492,16 +540,16 @@ const GalleryPage: NextPage = () => {
                 ×
               </button>
             </div>
-            
+
             {/* Navigation Arrows */}
-            <button 
+            <button
               className={`${styles.navButton} ${styles.prevButton}`}
               onClick={() => navigateMedia('prev')}
             >
               ‹
             </button>
-            
-            <button 
+
+            <button
               className={`${styles.navButton} ${styles.nextButton}`}
               onClick={() => navigateMedia('next')}
             >
@@ -537,7 +585,7 @@ const GalleryPage: NextPage = () => {
               <div className={styles.infoModalContent} onClick={(e) => e.stopPropagation()}>
                 <div className={styles.infoModalHeader}>
                   <h3>Media Information</h3>
-                  <button 
+                  <button
                     className={styles.infoModalClose}
                     onClick={() => setShowInfoModal(false)}
                   >

@@ -81,7 +81,7 @@ const Home: NextPage = () => {
 
         {!loading && folders.length === 0 && (
           <div className={styles.emptyState}>
-            No albums found. Add some photos to the public/photos directory.
+            No albums found. Add some photos to the USB hard drive directory.
           </div>
         )}
       </main>
