@@ -29,7 +29,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   
   console.log('🚀 Gallery API called with slug:', slug);
   
-  const usbBasePath = '/media/ph0to/USB20FD';
+  const usbBasePath = '/media/ph0to/photo_gallery';
   
   if (!fs.existsSync(usbBasePath)) {
     return res.status(404).json({ 
