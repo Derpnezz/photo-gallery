@@ -11,7 +11,7 @@ interface Folder {
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const usbBasePath = '/media/ph0to/USB20FD';
+  const usbBasePath = '/media/ph0to/photo_gallery';
   
   if (!fs.existsSync(usbBasePath)) {
     return res.status(404).json({ 
