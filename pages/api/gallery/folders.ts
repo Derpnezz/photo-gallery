@@ -11,7 +11,7 @@ interface Folder {
 }
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const usbBasePath = '/media/ph0to/photo_gallery';
+  const usbBasePath = '/media/ph0to/photo_storage';
   
   if (!fs.existsSync(usbBasePath)) {
     return res.status(404).json({ 
@@ -48,4 +48,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       error: 'Error reading folders'
     });
   }
+}
+
+export const config = {
+  api: {
+    responseLimit: false,
+  },
 }

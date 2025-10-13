@@ -9,7 +9,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'File path required' });
   }
 
-  const usbBasePath = '/media/ph0to/photo_gallery';
+  const usbBasePath = '/media/ph0to/photo_storage';
   
   // Join all path parts with forward slashes
   const fullPath = path.join(usbBasePath, ...filePath);
@@ -59,4 +59,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }
+}
+
+export const config = {
+  api: {
+    responseLimit: false,
+  },
 }

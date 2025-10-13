@@ -29,7 +29,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   
   console.log('🚀 Gallery API called with slug:', slug);
   
-  const usbBasePath = '/media/ph0to/photo_gallery';
+  const usbBasePath = '/media/ph0to/photo_storage';
   
   if (!fs.existsSync(usbBasePath)) {
     return res.status(404).json({ 
@@ -153,4 +153,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }
+}
+
+export const config = {
+  api: {
+    responseLimit: false,
+  },
 }

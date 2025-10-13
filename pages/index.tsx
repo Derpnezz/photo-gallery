@@ -85,6 +85,10 @@ const Home: NextPage = () => {
           </div>
         )}
       </main>
+
+      <footer className={styles.footer}>
+        <p>© {new Date().getFullYear()} Gabriel Yee.<br />All photos may be used freely for personal use but cannot be used for commercial purposes or monetary gain without permission.</p>
+      </footer>
     </div>
   );
 };

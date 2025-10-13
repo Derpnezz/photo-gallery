@@ -486,6 +486,7 @@ const GalleryPage: NextPage = () => {
                   height={200}
                   className={styles.thumbnail}
                   style={{ objectFit: 'cover' }}
+                  loading="lazy"
                 />
               ) : (
                 <div className={styles.videoThumbnail}>
