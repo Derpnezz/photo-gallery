@@ -679,3 +679,11 @@
     padding: 0.4rem 0.8rem;
   }
 }
+
+
+
+.placeholder {
+  background: #303134;
+  width: 100%;
+  min-height: 200px;
+}

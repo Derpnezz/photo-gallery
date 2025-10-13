@@ -4,7 +4,7 @@ import path from 'path';
 
 interface MediaFile {
   name: string;
-  path: string;
+  path?: string;
   publicPath: string;
   type: 'image' | 'video';
   size: number;
@@ -24,6 +24,39 @@ interface GalleryData {
   subFolders: SubFolder[];
 }
 
+interface FolderMetadata {
+  name: string;
+  path: string;
+  slug: string;
+  files: MediaFile[];
+  subFolders: string[];
+  thumbnail?: string;
+}
+
+interface MetadataIndex {
+  [key: string]: FolderMetadata;
+}
+
+// Load metadata index once at startup
+let metadataCache: MetadataIndex | null = null;
+
+function loadMetadataIndex(): MetadataIndex {
+  if (metadataCache) return metadataCache;
+  
+  try {
+    const metadataPath = path.join(process.cwd(), 'public', 'metadata-index.json');
+    if (fs.existsSync(metadataPath)) {
+      const data = fs.readFileSync(metadataPath, 'utf-8');
+      metadataCache = JSON.parse(data);
+      console.log('✅ Loaded metadata index with', Object.keys(metadataCache).length, 'folders');
+      return metadataCache;
+    }
+  } catch (error) {
+    console.error('❌ Error loading metadata index:', error);
+  }
+  return {};
+}
+
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { slug } = req.query;
   
@@ -31,6 +64,35 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   
   const usbBasePath = '/media/ph0to/photo_storage';
   
+  // Try to use cached metadata first
+  const metadataIndex = loadMetadataIndex();
+  const slugKey = Array.isArray(slug) ? slug.join('/') : (slug || 'root');
+  
+  // Use metadata index if available
+  if (metadataIndex && metadataIndex[slugKey]) {
+    const metadata = metadataIndex[slugKey];
+    
+    const subFolders: SubFolder[] = metadata.subFolders.map(subSlug => {
+      const subMeta = metadataIndex[subSlug];
+      return {
+        name: subMeta?.name || subSlug.split('/').pop() || '',
+        path: subMeta?.path || '',
+        slug: subSlug
+      };
+    });
+
+    const galleryData: GalleryData = {
+      folder: metadata.name,
+      fullPath: metadata.slug,
+      files: metadata.files,
+      subFolders
+    };
+
+    console.log(`⚡ Served from cache: ${metadata.files.length} files, ${subFolders.length} folders`);
+    return res.status(200).json(galleryData);
+  }
+
+  // Fallback to filesystem scanning if metadata not available
   if (!fs.existsSync(usbBasePath)) {
     return res.status(404).json({ 
       error: 'USB drive not found',

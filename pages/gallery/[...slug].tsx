@@ -44,6 +44,8 @@ const GalleryPage: NextPage = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
+  const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 });
+  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (slug) {
@@ -53,6 +55,34 @@ const GalleryPage: NextPage = () => {
       fetchGalleryData(folderPath);
     }
   }, [slug]);
+
+  // Virtual scrolling with intersection observer
+  useEffect(() => {
+    const options = {
+      root: null,
+      rootMargin: '200px',
+      threshold: 0.01
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const index = parseInt(entry.target.getAttribute('data-index') || '0');
+          setVisibleRange(prev => ({
+            start: Math.max(0, Math.min(prev.start, index - 10)),
+            end: Math.max(prev.end, index + 40)
+          }));
+        }
+      });
+    }, options);
+
+    if (gridRef.current) {
+      const items = gridRef.current.querySelectorAll('[data-index]');
+      items.forEach(item => observer.observe(item));
+    }
+
+    return () => observer.disconnect();
+  }, [galleryData]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -456,9 +486,13 @@ const GalleryPage: NextPage = () => {
           </>
         )}
 
-        <div className={styles.mediaGrid}>
-          {getSortedAndFilteredFiles().map((file, index) => (
+        <div className={styles.mediaGrid} ref={gridRef}>
+          {getSortedAndFilteredFiles().map((file, index) => {
+            const isVisible = index >= visibleRange.start && index <= visibleRange.end;
+            
+            return (
             <div
+              data-index={index}
               key={file.publicPath}
               className={`${styles.mediaItem} ${isSelectionMode ? styles.selectable : ''} ${selectedFiles.has(file.publicPath) ? styles.selected : ''}`}
               onClick={(e) => {
@@ -478,7 +512,9 @@ const GalleryPage: NextPage = () => {
                   />
                 </div>
               )}
-              {file.type === 'image' ? (
+              {!isVisible ? (
+                <div className={styles.placeholder} style={{ aspectRatio: '3/2' }} />
+              ) : file.type === 'image' ? (
                 <Image
                   src={file.publicPath}
                   alt={file.name}
@@ -487,6 +523,9 @@ const GalleryPage: NextPage = () => {
                   className={styles.thumbnail}
                   style={{ objectFit: 'cover' }}
                   loading="lazy"
+                  placeholder="blur"
+                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzMwMzEzNCIvPjwvc3ZnPg=="
+                  quality={75}
                 />
               ) : (
                 <div className={styles.videoThumbnail}>
@@ -502,7 +541,7 @@ const GalleryPage: NextPage = () => {
                 <div className={styles.mediaName}>{file.name}</div>
               </div>
             </div>
-          ))}
+          )})}
         </div>
 
         {getSortedAndFilteredFiles().length === 0 && galleryData.files.length > 0 && (
