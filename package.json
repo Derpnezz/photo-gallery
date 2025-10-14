@@ -7,7 +7,7 @@
     "build": "npm run generate-metadata && next build",
     "start": "next start --port 3000 --hostname 0.0.0.0",
     "lint": "next lint",
-    "generate-metadata": "tsc scripts/generate-metadata.ts --outDir scripts --module commonjs --outFile scripts/generate-metadata.cjs && node scripts/generate-metadata.cjs"
+    "generate-metadata": "tsc scripts/generate-metadata.ts --outDir scripts --module commonjs && node scripts/generate-metadata.js"
   },
   "dependencies": {
     "jszip": "^3.10.1",
