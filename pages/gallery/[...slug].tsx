@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from '../../styles/Gallery.module.css';
 
 interface MediaFile {
@@ -233,7 +233,7 @@ const GalleryPage: NextPage = () => {
     setSelectedMedia(null);
   };
 
-  const navigateMedia = (direction: 'prev' | 'next') => {
+  const navigateMedia = useCallback((direction: 'prev' | 'next') => {
     if (!selectedMedia || !galleryData) return;
 
     const displayedFiles = getSortedAndFilteredFiles();
@@ -247,7 +247,7 @@ const GalleryPage: NextPage = () => {
     }
 
     setSelectedMedia(displayedFiles[newIndex]);
-  };
+  }, [selectedMedia, galleryData, getSortedAndFilteredFiles]);
 
   const downloadMedia = (media: MediaFile) => {
     const link = document.createElement('a');

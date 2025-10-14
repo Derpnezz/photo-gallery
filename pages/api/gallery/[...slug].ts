@@ -4,7 +4,7 @@ import path from 'path';
 
 interface MediaFile {
   name: string;
-  path?: string;
+  path: string;
   publicPath: string;
   type: 'image' | 'video';
   size: number;
