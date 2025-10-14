@@ -187,7 +187,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
             name: file.name,
             path: filePath,
             publicPath: publicPath,
-            type: isImage ? 'image' : 'video',
+            type: (isImage ? 'image' : 'video') as 'image' | 'video',
             size: stats.size,
             modified: stats.mtime.toISOString()
           };

@@ -111,7 +111,7 @@ const GalleryPage: NextPage = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [selectedMedia]);
+  }, [selectedMedia, navigateMedia]);
 
   const fetchGalleryData = async (folderPath: string) => {
     try {
