@@ -1,12 +1,8 @@
-import type { NextConfig } from "next";
-import { env } from "process";
 
-/*const nextConfig: NextConfig = {
-  allowedDevOrigins: ['*'],
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  allowedDevOrigins: ['*', 'https://xc.gabyee.dev'],
 };
 
-module.exports = nextConfig;
-*/
-module.exports = {
-  allowedDevOrigins: ['*'],
-}
+export default nextConfig;
