@@ -104,6 +104,22 @@ const GalleryPage: NextPage = () => {
     return () => observer.disconnect();
   }, [galleryData]);
 
+  const navigateMedia = useCallback((direction: 'prev' | 'next') => {
+    if (!selectedMedia || !galleryData) return;
+
+    const displayedFiles = getSortedAndFilteredFiles();
+    const currentIndex = displayedFiles.findIndex(file => file.publicPath === selectedMedia.publicPath);
+    let newIndex;
+
+    if (direction === 'prev') {
+      newIndex = currentIndex > 0 ? currentIndex - 1 : displayedFiles.length - 1;
+    } else {
+      newIndex = currentIndex < displayedFiles.length - 1 ? currentIndex + 1 : 0;
+    }
+
+    setSelectedMedia(displayedFiles[newIndex]);
+  }, [selectedMedia, galleryData]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!selectedMedia) return;
@@ -252,22 +268,6 @@ const GalleryPage: NextPage = () => {
   const closeLightbox = () => {
     setSelectedMedia(null);
   };
-
-  const navigateMedia = useCallback((direction: 'prev' | 'next') => {
-    if (!selectedMedia || !galleryData) return;
-
-    const displayedFiles = getSortedAndFilteredFiles();
-    const currentIndex = displayedFiles.findIndex(file => file.publicPath === selectedMedia.publicPath);
-    let newIndex;
-
-    if (direction === 'prev') {
-      newIndex = currentIndex > 0 ? currentIndex - 1 : displayedFiles.length - 1;
-    } else {
-      newIndex = currentIndex < displayedFiles.length - 1 ? currentIndex + 1 : 0;
-    }
-
-    setSelectedMedia(displayedFiles[newIndex]);
-  }, [selectedMedia, galleryData, getSortedAndFilteredFiles]);
 
   const downloadMedia = async (media: MediaFile) => {
     if (isMobile) {
