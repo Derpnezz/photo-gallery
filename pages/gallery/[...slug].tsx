@@ -270,37 +270,17 @@ const GalleryPage: NextPage = () => {
   };
 
   const downloadMedia = async (media: MediaFile) => {
-    if (isMobile) {
-      // On mobile, use Web Share API to save to photo gallery
-      try {
-        const response = await fetch(media.publicPath);
-        const blob = await response.blob();
-        const file = new File([blob], media.name, { type: blob.type });
+    const link = document.createElement('a');
+    link.href = media.publicPath;
+    link.download = media.name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
-        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            files: [file],
-            title: media.name,
-          });
-        } else {
-          // Show modal if sharing is not supported
-          setMobileDownloadMessage('Your device does not support saving to photo gallery. Please use a desktop device or try a different browser.');
-          setShowMobileDownloadModal(true);
-        }
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          setMobileDownloadMessage('Unable to save to photo gallery. Please try again or use a desktop device.');
-          setShowMobileDownloadModal(true);
-        }
-      }
-    } else {
-      // Desktop: standard download
-      const link = document.createElement('a');
-      link.href = media.publicPath;
-      link.download = media.name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    // Show informational modal on mobile
+    if (isMobile) {
+      setMobileDownloadMessage('Your file has been downloaded and can be found in your Files app.');
+      setShowMobileDownloadModal(true);
     }
   };
 
@@ -355,62 +335,34 @@ const GalleryPage: NextPage = () => {
     const displayedFiles = getSortedAndFilteredFiles();
     const filesToDownload = displayedFiles.filter(f => selectedFiles.has(f.publicPath));
 
+    const JSZip = (await import('jszip')).default;
+    const zip = new (JSZip as any)();
+
+    // Fetch and add files to zip
+    for (const file of filesToDownload) {
+      try {
+        const response = await fetch(file.publicPath);
+        const blob = await response.blob();
+        zip.file(file.name, blob);
+      } catch (error) {
+        console.error(`Failed to add ${file.name} to zip:`, error);
+      }
+    }
+
+    // Generate and download zip
+    const content = await zip.generateAsync({ type: 'blob' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(content);
+    link.download = `${galleryData?.folder.split('/').pop() || 'gallery'}-photos.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+
+    // Show informational modal on mobile
     if (isMobile) {
-      // On mobile: download each file individually to photo gallery
-      let successCount = 0;
-      let failCount = 0;
-
-      for (const file of filesToDownload) {
-        try {
-          const response = await fetch(file.publicPath);
-          const blob = await response.blob();
-          const shareFile = new File([blob], file.name, { type: blob.type });
-
-          if (navigator.share && navigator.canShare && navigator.canShare({ files: [shareFile] })) {
-            await navigator.share({
-              files: [shareFile],
-              title: file.name,
-            });
-            successCount++;
-          } else {
-            failCount++;
-          }
-        } catch (error) {
-          if ((error as Error).name !== 'AbortError') {
-            failCount++;
-          }
-        }
-      }
-
-      if (failCount > 0) {
-        setMobileDownloadMessage(`${failCount} file(s) could not be saved to photo gallery. Your device may not support this feature. Please use a desktop device.`);
-        setShowMobileDownloadModal(true);
-      }
-    } else {
-      // Desktop: create ZIP file
-      const JSZip = (await import('jszip')).default;
-      const zip = new (JSZip as any)();
-
-      // Fetch and add files to zip
-      for (const file of filesToDownload) {
-        try {
-          const response = await fetch(file.publicPath);
-          const blob = await response.blob();
-          zip.file(file.name, blob);
-        } catch (error) {
-          console.error(`Failed to add ${file.name} to zip:`, error);
-        }
-      }
-
-      // Generate and download zip
-      const content = await zip.generateAsync({ type: 'blob' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(content);
-      link.download = `${galleryData?.folder.split('/').pop() || 'gallery'}-photos.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
+      setMobileDownloadMessage(`Your ZIP file with ${selectedFiles.size} photo(s) has been downloaded and can be found in your Files app.`);
+      setShowMobileDownloadModal(true);
     }
   };
 
@@ -741,7 +693,7 @@ const GalleryPage: NextPage = () => {
         <div className={styles.mobileDownloadModal} onClick={() => setShowMobileDownloadModal(false)}>
           <div className={styles.mobileDownloadModalContent} onClick={(e) => e.stopPropagation()}>
             <div className={styles.mobileDownloadModalHeader}>
-              <h3>Download Not Available</h3>
+              <h3>Download Complete</h3>
               <button
                 className={styles.mobileDownloadModalClose}
                 onClick={() => setShowMobileDownloadModal(false)}
