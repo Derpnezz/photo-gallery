@@ -6,6 +6,23 @@ import Image from 'next/image';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from '../../styles/Gallery.module.css';
 
+// Hook to detect mobile devices
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      const mobileKeywords = ['android', 'webos', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
+      return mobileKeywords.some(keyword => userAgent.includes(keyword));
+    };
+    
+    setIsMobile(checkMobile());
+  }, []);
+
+  return isMobile;
+};
+
 interface MediaFile {
   name: string;
   path: string;
@@ -46,6 +63,9 @@ const GalleryPage: NextPage = () => {
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const [visibleRange, setVisibleRange] = useState({ start: 0, end: 50 });
   const gridRef = useRef<HTMLDivElement>(null);
+  const [showMobileDownloadModal, setShowMobileDownloadModal] = useState(false);
+  const [mobileDownloadMessage, setMobileDownloadMessage] = useState('');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (slug) {
@@ -249,13 +269,39 @@ const GalleryPage: NextPage = () => {
     setSelectedMedia(displayedFiles[newIndex]);
   }, [selectedMedia, galleryData, getSortedAndFilteredFiles]);
 
-  const downloadMedia = (media: MediaFile) => {
-    const link = document.createElement('a');
-    link.href = media.publicPath;
-    link.download = media.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const downloadMedia = async (media: MediaFile) => {
+    if (isMobile) {
+      // On mobile, use Web Share API to save to photo gallery
+      try {
+        const response = await fetch(media.publicPath);
+        const blob = await response.blob();
+        const file = new File([blob], media.name, { type: blob.type });
+
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: media.name,
+          });
+        } else {
+          // Show modal if sharing is not supported
+          setMobileDownloadMessage('Your device does not support saving to photo gallery. Please use a desktop device or try a different browser.');
+          setShowMobileDownloadModal(true);
+        }
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          setMobileDownloadMessage('Unable to save to photo gallery. Please try again or use a desktop device.');
+          setShowMobileDownloadModal(true);
+        }
+      }
+    } else {
+      // Desktop: standard download
+      const link = document.createElement('a');
+      link.href = media.publicPath;
+      link.download = media.name;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const toggleSelectionMode = () => {
@@ -306,32 +352,66 @@ const GalleryPage: NextPage = () => {
   const downloadSelectedAsZip = async () => {
     if (selectedFiles.size === 0) return;
 
-    const JSZip = (await import('jszip')).default;
-    const zip = new (JSZip as any)();
-
     const displayedFiles = getSortedAndFilteredFiles();
     const filesToDownload = displayedFiles.filter(f => selectedFiles.has(f.publicPath));
 
-    // Fetch and add files to zip
-    for (const file of filesToDownload) {
-      try {
-        const response = await fetch(file.publicPath);
-        const blob = await response.blob();
-        zip.file(file.name, blob);
-      } catch (error) {
-        console.error(`Failed to add ${file.name} to zip:`, error);
-      }
-    }
+    if (isMobile) {
+      // On mobile: download each file individually to photo gallery
+      let successCount = 0;
+      let failCount = 0;
 
-    // Generate and download zip
-    const content = await zip.generateAsync({ type: 'blob' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(content);
-    link.download = `${galleryData?.folder.split('/').pop() || 'gallery'}-photos.zip`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+      for (const file of filesToDownload) {
+        try {
+          const response = await fetch(file.publicPath);
+          const blob = await response.blob();
+          const shareFile = new File([blob], file.name, { type: blob.type });
+
+          if (navigator.share && navigator.canShare && navigator.canShare({ files: [shareFile] })) {
+            await navigator.share({
+              files: [shareFile],
+              title: file.name,
+            });
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (error) {
+          if ((error as Error).name !== 'AbortError') {
+            failCount++;
+          }
+        }
+      }
+
+      if (failCount > 0) {
+        setMobileDownloadMessage(`${failCount} file(s) could not be saved to photo gallery. Your device may not support this feature. Please use a desktop device.`);
+        setShowMobileDownloadModal(true);
+      }
+    } else {
+      // Desktop: create ZIP file
+      const JSZip = (await import('jszip')).default;
+      const zip = new (JSZip as any)();
+
+      // Fetch and add files to zip
+      for (const file of filesToDownload) {
+        try {
+          const response = await fetch(file.publicPath);
+          const blob = await response.blob();
+          zip.file(file.name, blob);
+        } catch (error) {
+          console.error(`Failed to add ${file.name} to zip:`, error);
+        }
+      }
+
+      // Generate and download zip
+      const content = await zip.generateAsync({ type: 'blob' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(content);
+      link.download = `${galleryData?.folder.split('/').pop() || 'gallery'}-photos.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    }
   };
 
   if (loading) {
@@ -653,6 +733,34 @@ const GalleryPage: NextPage = () => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Mobile Download Not Supported Modal */}
+      {showMobileDownloadModal && (
+        <div className={styles.mobileDownloadModal} onClick={() => setShowMobileDownloadModal(false)}>
+          <div className={styles.mobileDownloadModalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.mobileDownloadModalHeader}>
+              <h3>Download Not Available</h3>
+              <button
+                className={styles.mobileDownloadModalClose}
+                onClick={() => setShowMobileDownloadModal(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.mobileDownloadModalBody}>
+              <p>{mobileDownloadMessage}</p>
+            </div>
+            <div className={styles.mobileDownloadModalFooter}>
+              <button
+                className={styles.mobileDownloadModalButton}
+                onClick={() => setShowMobileDownloadModal(false)}
+              >
+                OK
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
