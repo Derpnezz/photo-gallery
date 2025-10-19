@@ -10,6 +10,7 @@
     "generate-metadata": "tsc scripts/generate-metadata.ts --outDir scripts --module commonjs && node scripts/generate-metadata.js"
   },
   "dependencies": {
+    "express-rate-limit": "^8.1.0",
     "jszip": "^3.10.1",
     "next": "^15.2.3",
     "react": "^19.0.0",
