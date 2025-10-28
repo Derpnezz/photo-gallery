@@ -4,20 +4,20 @@ import path from 'path';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { path: filePath } = req.query as { path: string[] };
-
+  
   if (!filePath || filePath.length === 0) {
     return res.status(400).json({ error: 'File path required' });
   }
 
   const usbBasePath = '/media/ph0to/photo_storage';
-
+  
   // Join all path parts with forward slashes
   const fullPath = path.join(usbBasePath, ...filePath);
-
+  
   // Security check
   const resolvedPath = path.resolve(fullPath);
   const resolvedUsbPath = path.resolve(usbBasePath);
-
+  
   if (!resolvedPath.startsWith(resolvedUsbPath)) {
     return res.status(403).json({ error: 'Access denied' });
   }
@@ -48,18 +48,18 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     };
 
     const mimeType = mimeTypes[ext] || 'application/octet-stream';
-
-    // Set headers
+    
     res.setHeader('Content-Type', mimeType);
     res.setHeader('Content-Length', stats.size.toString());
     res.setHeader('Cache-Control', 'public, max-age=86400');
+    
     res.setHeader('Access-Control-Allow-Origin', 'https://xc.gabyee.dev');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     const readStream = fs.createReadStream(fullPath);
     readStream.pipe(res);
-
+    
   } catch (error) {
     res.status(500).json({ error: 'Internal server error' });
   }

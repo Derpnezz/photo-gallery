@@ -10,13 +10,11 @@
     "generate-metadata": "tsc scripts/generate-metadata.ts --outDir scripts --module commonjs && node scripts/generate-metadata.js"
   },
   "dependencies": {
-    "express-rate-limit": "^8.1.0",
     "jszip": "^3.10.1",
     "next": "^15.2.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "tailwindcss": "^4.0.15",
-    "ts-node": "^10.9.2"
+    "tailwindcss": "^4.0.15"
   },
   "devDependencies": {
     "@types/node": "^22.13.11",
@@ -24,6 +22,7 @@
     "@types/react-dom": "^19.0.4",
     "eslint": "^9.23.0",
     "eslint-config-next": "^15.2.3",
-    "typescript": "^5.8.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }
