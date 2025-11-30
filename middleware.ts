@@ -127,7 +127,7 @@ export function middleware(request: NextRequest) {
   if (isAllowedRoute || pathname === '/') {
     const now = Date.now()
     const windowMs = 15 * 60 * 1000 // 15 minutes
-    const maxRequests = 100 // Generous limit for normal browsing
+    const maxRequests = 10000 // Generous limit for normal browsing
 
     if (!rateLimitMap.has(ip)) {
       rateLimitMap.set(ip, {
