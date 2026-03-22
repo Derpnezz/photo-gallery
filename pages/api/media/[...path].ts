@@ -9,7 +9,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'File path required' });
   }
 
-  const usbBasePath = '/media/ph0to/photo_storage';
+  const usbBasePath = '~/Pictures/photo-gallery-media';
   
   // Join all path parts with forward slashes
   const fullPath = path.join(usbBasePath, ...filePath);

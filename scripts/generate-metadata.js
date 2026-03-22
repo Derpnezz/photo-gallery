@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
-var usbBasePath = '/media/ph0to/photo_storage';
+var usbBasePath = '~/Pictures/photo-gallery-media';
 var outputPath = path.join(process.cwd(), 'public', 'metadata-index.json');
 function scanDirectory(dirPath, baseSlug) {
     if (baseSlug === void 0) { baseSlug = ''; }

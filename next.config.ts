@@ -43,7 +43,7 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  allowedDevOrigins: ['69.255.110.101', '192.168.0.31', 'photos.gabyee.dev'],
+  allowedDevOrigins: ['69.255.110.101', '192.168.0.225'],
 };
 
 export default nextConfig;

@@ -31,6 +31,9 @@ export function middleware(request: NextRequest) {
     pathname.startsWith(route)
   )
 
+  // LOG ANY IP ADDRESS ATTEMPTING TO CONNECT
+  //console.log(`📸 Incoming request from: ${ip}`)
+
   // BLOCK ALL NON-GET REQUESTS (except OPTIONS and HEAD)
   if (!allowedMethods.includes(method)) {
     console.log(`🚨 Blocked ${method} request: ${ip} - ${method} ${pathname}`)
