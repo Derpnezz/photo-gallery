@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import Link from 'next/link';
-import styles from '../styles/MediaStorage.module.css';
+import styles from '../../styles/MediaStorage.module.css';
 
 export default function MediaStorage() {
   const [password, setPassword] = useState('');
@@ -93,7 +93,7 @@ export default function MediaStorage() {
         <h1 className={styles.title}>All Media Folders</h1>
         <div className={styles.folderGrid}>
           {folders.map((folder) => {
-            const hash = require('../lib/folderHash').getFolderHash(folder.name);
+            const hash = require('../../lib/folderHash').getFolderHash(folder.name);
             return (
               <Link
                 key={folder.slug}

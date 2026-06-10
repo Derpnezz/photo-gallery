@@ -22,7 +22,7 @@ const Portfolio: NextPage = () => {
     {
       title: "Northwest Track",
       link: "/gallery/northwest-tf",  // Has link
-      image: "/portfolio-images/northwest-xc.jpg",
+      image: "/portfolio-images/cardinal-classic.png",
     },
     {
       title: "Summer Vibes",
@@ -83,7 +83,12 @@ const Portfolio: NextPage = () => {
 
       {/* Featured Work / Gallery Preview */}
       <section className={styles.featured}>
-        <h1 className={styles.heroTitle}>Gabriel Yee</h1>
+        <h1 className={styles.sectionTitleLarge}>Gabriel Yee</h1>
+        <div className={styles.heroButtons}>
+            <Link href="/media-storage" className={styles.primaryButton}>
+              Access Storage
+            </Link>
+          </div>
         <h2 className={styles.sectionTitle}>Featured Work</h2>
         <div className={styles.galleryGrid}>
           {featuredWorks.map((work, index) => {
