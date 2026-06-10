@@ -62,7 +62,8 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   
   console.log('🚀 Gallery API called with slug:', slug);
   
-  const usbBasePath = '~/Pictures/photo-gallery-media';
+  const os = require('os');
+  const usbBasePath = os.homeDir() + '/Pictures/photo-gallery-media';
   
   // Try to use cached metadata first
   const metadataIndex = loadMetadataIndex();
