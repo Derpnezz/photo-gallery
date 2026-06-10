@@ -44,15 +44,16 @@ export default function MediaStorage() {
 
   const fetchFolders = async () => {
     try {
-      const res = await fetch('/api/gallery/folders');
-      const data = await res.json();
-      setFolders(data);
+        const res = await fetch('/api/gallery/folders');
+        const data = await res.json();
+        setFolders(data);
     } catch (err) {
-      console.error(err);
+        console.error(err);
+        setError('Failed to load folders');
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+    };
 
   if (loading) {
     return <div className={styles.container}>Loading...</div>;

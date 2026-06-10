@@ -1,0 +1,128 @@
+.container {
+  min-height: 100vh;
+  background-color: #202124;
+  color: #e8eaed;
+}
+
+.main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 400;
+  margin-bottom: 2rem;
+  color: #e8eaed;
+}
+
+/* Login page styles */
+.loginContainer {
+  min-height: 100vh;
+  background-color: #202124;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.loginCard {
+  background: #303134;
+  border-radius: 12px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  border: 1px solid #5f6368;
+}
+
+.loginCard h1 {
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin-bottom: 0.5rem;
+  color: #e8eaed;
+}
+
+.loginCard p {
+  color: #9aa0a6;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.passwordInput {
+  width: 100%;
+  padding: 0.75rem;
+  background: #202124;
+  border: 1px solid #5f6368;
+  border-radius: 8px;
+  color: #e8eaed;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+.passwordInput:focus {
+  outline: none;
+  border-color: #8ab4f8;
+}
+
+.loginButton {
+  width: 100%;
+  padding: 0.75rem;
+  background: #8ab4f8;
+  color: #202124;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.loginButton:hover {
+  background: #669df6;
+}
+
+.error {
+  color: #f28b82;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+/* Folder grid styles (same as Home.module.css) */
+.folderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 2rem;
+}
+
+.folderCard {
+  display: flex;
+  align-items: center;
+  padding: 1.5rem;
+  background: #303134;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #e8eaed;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+  border: 1px solid #5f6368;
+  height: 80px;
+}
+
+.folderCard:hover {
+  transform: translateY(-2px);
+  background: #3c4043;
+}
+
+.folderIcon {
+  font-size: 2.5rem;
+  margin-right: 1.2rem;
+  color: #8ab4f8;
+}
+
+.folderName {
+  font-weight: 500;
+  font-size: 1.2rem;
+  color: #e8eaed;
+}
