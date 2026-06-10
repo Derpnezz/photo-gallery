@@ -18,36 +18,36 @@ const Portfolio: NextPage = () => {
     }
   };
 
-  // link and define photos here
+  // Define your featured works with folder names (not pre-computed links)
   const featuredWorks = [
     {
       title: "Northwest Track",
-      link: "/${getFolderHash('northwest-tf')}/northwest-tf",  // Has link
+      folderName: "northwest-tf",  // Store folder name instead of link
       image: "/portfolio-images/cardinal-classic.png",
     },
     {
       title: "Northwest XC",
-      link: null,  // No link - just a photo
+      folderName: null,  // No link - just a photo
       image: "/portfolio-images/IMG_8444.JPG",
     },
     {
       title: "Portraits",
-      link: "/gallery/portraits",
+      folderName: "portraits",
       image: "/portfolio-images/portraits.jpg",
     },
     {
       title: "Mountain Sunset",
-      link: null,  // No link - just decoration
+      folderName: null,  // No link - just decoration
       image: "/portfolio-images/mountain-sunset.jpg",
     },
     {
       title: "Urban Life",
-      link: "/gallery/urban",  // Has link
+      folderName: "urban",
       image: "/portfolio-images/urban.jpg",
     },
     {
       title: "Abstract",
-      link: null,  // No link
+      folderName: null,  // No link
       image: "/portfolio-images/abstract.jpg",
     },
   ];
@@ -93,6 +93,9 @@ const Portfolio: NextPage = () => {
         <h2 className={styles.sectionTitle}>Featured Work</h2>
         <div className={styles.galleryGrid}>
           {featuredWorks.map((work, index) => {
+            // Calculate hash here if folderName exists
+            const linkPath = work.folderName ? `/${getFolderHash(work.folderName)}/${work.folderName}` : null;
+            
             const content = (
               <>
                 <Image
@@ -107,14 +110,16 @@ const Portfolio: NextPage = () => {
                 </div>
               </>
             );
+            
             // If it has a link, wrap in Link component
-            if (work.link) {
+            if (linkPath) {
               return (
-                <Link key={index} href={work.link} className={styles.galleryItem}>
+                <Link key={index} href={linkPath} className={styles.galleryItem}>
                   {content}
                 </Link>
               );
             }
+            
             // If no link, render as a div (no click)
             return (
               <div key={index} className={styles.galleryItem}>
