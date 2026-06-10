@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 // Change this to your desired password!
-const STORAGE_PASSWORD = 'your-secret-password';
+const STORAGE_PASSWORD = 'cypher';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

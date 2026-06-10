@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 // Secret key - CHANGE THIS to something random!
-const SECRET_KEY = 'cypher';
+const SECRET_KEY = 'QW3RTY_cypher79154bbyuia3';
 
 export function getFolderHash(folderName: string): string {
   // Create a deterministic, short hash from folder name + secret

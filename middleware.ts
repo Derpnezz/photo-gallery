@@ -15,38 +15,41 @@ export function middleware(request: NextRequest) {
     ip = forwardedFor.split(',')[0].trim();
   }
 
-  // ALLOWED HTTP METHODS - Only GET is allowed for most routes
+  // ALLOWED HTTP METHODS
   const allowedMethods = ['GET', 'HEAD', 'OPTIONS']
+  const isAuthRoute = pathname.startsWith('/api/auth/')
+  const isAllowedMethod = allowedMethods.includes(method) || (isAuthRoute && method === 'POST')
 
   // Define allowed routes that can use GET
   const allowedGetRoutes = [
-  '/gallery/',
-  '/api/media/',
-  '/api/gallery/',
-  '/media-storage',
-  '/api/auth/',
-];
+    '/gallery/',
+    '/api/media/',
+    '/api/gallery/',
+    '/media-storage',
+    '/api/auth/',
+  ]
   
   // Check if this is an allowed GET route
   const isAllowedRoute = allowedGetRoutes.some(route => 
     pathname.startsWith(route)
   )
 
+  // Allow public hash routes (e.g., /abc123/folder/subfolder)
+  const isHashRoute = pathname.match(/^\/[a-zA-Z0-9_-]{8}\/.*/)
+  if (isHashRoute) {
+    return NextResponse.next()
+  }
+
   // LOG ANY IP ADDRESS ATTEMPTING TO CONNECT
   //console.log(`📸 Incoming request from: ${ip}`)
 
-  // Allow public hash routes (e.g., /abc123/folder/subfolder)
-  if (pathname.match(/^\/[a-zA-Z0-9_-]{8}\/.*/)) {
-    return NextResponse.next();
-  }
-
-  // BLOCK ALL NON-GET REQUESTS (except OPTIONS and HEAD)
-  if (!allowedMethods.includes(method)) {
+  // BLOCK DISALLOWED METHODS
+  if (!isAllowedMethod) {
     console.log(`🚨 Blocked ${method} request: ${ip} - ${method} ${pathname}`)
     return new NextResponse('Method Not Allowed', {
       status: 405,
       headers: {
-        'Allow': 'GET, HEAD, OPTIONS'
+        'Allow': 'GET, HEAD, OPTIONS' + (isAuthRoute ? ', POST' : '')
       }
     })
   }
