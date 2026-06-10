@@ -23,7 +23,7 @@ export function middleware(request: NextRequest) {
   '/gallery/',
   '/api/media/',
   '/api/gallery/',
-  '/media-storage/',
+  '/media-storage',
   '/api/auth/',
 ];
   

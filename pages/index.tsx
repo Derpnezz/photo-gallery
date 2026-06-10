@@ -17,6 +17,40 @@ const Portfolio: NextPage = () => {
     }
   };
 
+  // link and define photos here
+  const featuredWorks = [
+    {
+      title: "Northwest Track",
+      link: "/gallery/northwest-tf",  // Has link
+      image: "/portfolio-images/northwest-xc.jpg",
+    },
+    {
+      title: "Summer Vibes",
+      link: null,  // No link - just a photo
+      image: "/portfolio-images/summer-vibes.jpg",
+    },
+    {
+      title: "Portraits",
+      link: "/gallery/portraits",
+      image: "/portfolio-images/portraits.jpg",
+    },
+    {
+      title: "Mountain Sunset",
+      link: null,  // No link - just decoration
+      image: "/portfolio-images/mountain-sunset.jpg",
+    },
+    {
+      title: "Urban Life",
+      link: "/gallery/urban",  // Has link
+      image: "/portfolio-images/urban.jpg",
+    },
+    {
+      title: "Abstract",
+      link: null,  // No link
+      image: "/portfolio-images/abstract.jpg",
+    },
+  ];
+
   return (
     <div className={styles.container}>
       <Head>
@@ -25,9 +59,11 @@ const Portfolio: NextPage = () => {
           name="description"
           content="Photography portfolio of Gabriel Yee — capturing moments, telling stories."
         />
+        <link rel="icon" type="image/png" href="/name_logo.png" />
       </Head>
 
       {/* Hero Section */}
+      { /*
       <section className={styles.hero}>
         <div className={styles.heroOverlay} />
         <div className={styles.heroContent}>
@@ -43,19 +79,43 @@ const Portfolio: NextPage = () => {
           </div>
         </div>
       </section>
+      */ }
 
       {/* Featured Work / Gallery Preview */}
       <section className={styles.featured}>
+        <h1 className={styles.heroTitle}>Gabriel Yee</h1>
         <h2 className={styles.sectionTitle}>Featured Work</h2>
         <div className={styles.galleryGrid}>
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className={styles.galleryItem}>
-              <div className={styles.imagePlaceholder} />
-              <div className={styles.imageOverlay}>
-                <span>Project {i}</span>
+          {featuredWorks.map((work, index) => {
+            const content = (
+              <>
+                <Image
+                  src={work.image}
+                  alt={work.title}
+                  fill
+                  className={styles.galleryImage}
+                  style={{ objectFit: 'cover' }}
+                />
+                <div className={styles.imageOverlay}>
+                  <span>{work.title}</span>
+                </div>
+              </>
+            );
+            // If it has a link, wrap in Link component
+            if (work.link) {
+              return (
+                <Link key={index} href={work.link} className={styles.galleryItem}>
+                  {content}
+                </Link>
+              );
+            }
+            // If no link, render as a div (no click)
+            return (
+              <div key={index} className={styles.galleryItem}>
+                {content}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 
@@ -64,19 +124,18 @@ const Portfolio: NextPage = () => {
         <div className={styles.aboutContent}>
           <h2 className={styles.sectionTitle}>About Me</h2>
           <p>
-            I'm Gabriel Yee, a photographer based in the Pacific Northwest. My work focuses on
-            capturing the raw beauty of landscapes, the intimacy of portraits, and the energy of
-            live events.
+            I'm Gabriel Yee, an amateur photographer within the Germantown, MD area.
+            I focus and excel at capturing action and movement within shots.
           </p>
           <p>
-            With over 5 years of experience, I've worked with clients ranging from outdoor brands
-            to local musicians. My approach is simple: be present, be patient, and let the moment
-            unfold naturally.
+            At the moment, I've been experimenting with iPhone action shots and independently shooting and editing videos.
+            As for now, the work I've done has been mainly for my school sports teams.
           </p>
         </div>
       </section>
 
       {/* Contact Section */}
+      { /*
       <section id="contact" className={styles.contact}>
         <h2 className={styles.sectionTitle}>Let's Work Together</h2>
         <div className={styles.contactGrid}>
@@ -105,6 +164,7 @@ const Portfolio: NextPage = () => {
           </form>
         </div>
       </section>
+      */ }
 
       <footer className={styles.footer}>
         <p>© {new Date().getFullYear()} Gabriel Yee. All rights reserved.</p>
