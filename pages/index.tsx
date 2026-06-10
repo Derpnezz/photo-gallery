@@ -3,6 +3,7 @@ import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { getFolderHash } from '../lib/folderHash';
 import styles from "../styles/Portfolio.module.css";
 
 const Portfolio: NextPage = () => {
@@ -21,13 +22,13 @@ const Portfolio: NextPage = () => {
   const featuredWorks = [
     {
       title: "Northwest Track",
-      link: "/gallery/northwest-tf",  // Has link
+      link: "/${getFolderHash('northwest-tf')}/northwest-tf",  // Has link
       image: "/portfolio-images/cardinal-classic.png",
     },
     {
-      title: "Summer Vibes",
+      title: "Northwest XC",
       link: null,  // No link - just a photo
-      image: "/portfolio-images/summer-vibes.jpg",
+      image: "/portfolio-images/IMG_8444.JPG",
     },
     {
       title: "Portraits",

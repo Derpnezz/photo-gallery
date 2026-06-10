@@ -24,7 +24,7 @@ interface MetadataIndex {
 }
 
 const os = require('os');
-const usbBasePath = os.homeDir() + '/Pictures/photo-gallery-media';
+const usbBasePath = os.homedir() + '/Pictures/photo-gallery-media';
 const outputPath = path.join(process.cwd(), 'public', 'metadata-index.json');
 
 function scanDirectory(dirPath: string, baseSlug: string = ''): MetadataIndex {

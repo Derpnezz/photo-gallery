@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { getFolderHash } from '../../lib/folderHash';
 import styles from '../../styles/Gallery.module.css';
 
 // Hook to detect mobile devices
@@ -212,21 +213,24 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     const fullPath = galleryData.fullPath || (Array.isArray(slug) ? slug.join('/') : slug || '');
 
     if (fullPath) {
-       const pathParts = fullPath.split('/');
-
-       let currentPath = '';
-       pathParts.forEach((part, index) => {
-          currentPath += (index > 0 ? '/' : '') + part;
-          breadcrumbs.push({
-             name: part,
-             path: `/gallery/${currentPath}`
-          });
-       });
+      const pathParts = fullPath.split('/');
+      let currentPath = '';
+      
+      pathParts.forEach((part, index) => {
+        currentPath += (index > 0 ? '/' : '') + part;
+        // Get the folder name for this level (the last part of currentPath)
+        const folderName = part;
+        const hash = getFolderHash(folderName);
+        breadcrumbs.push({
+          name: part,
+          path: `/${hash}/${currentPath}`
+        });
+      });
     } else {
-       breadcrumbs.push({
-          name: galleryData.folder,
-          path: `/gallery/${galleryData.folder}`
-       });
+      breadcrumbs.push({
+        name: galleryData.folder,
+        path: `/`
+      });
     }
     return breadcrumbs;
   };
@@ -433,7 +437,7 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
               {galleryData.subFolders.map((folder) => (
                 <Link
                   key={folder.slug}
-                  href={`/gallery/${folder.slug}`}
+                  href={`/${getFolderHash(folder.name)}/${folder.slug}`}
                   className={styles.subFolderCard}
                 >
                   <div className={styles.folderIcon}>📁</div>

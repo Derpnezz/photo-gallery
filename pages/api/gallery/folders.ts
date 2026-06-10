@@ -12,7 +12,7 @@ interface Folder {
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const os = require('os');
-  const usbBasePath = os.homeDir() + '/Pictures/photo-gallery-media';
+  const usbBasePath = os.homedir() + '/Pictures/photo-gallery-media';
   
   if (!fs.existsSync(usbBasePath)) {
     return res.status(404).json({ 
