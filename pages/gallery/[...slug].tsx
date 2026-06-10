@@ -48,9 +48,10 @@ interface SubFolder {
 type SortOption = 'name' | 'date' | 'size' | 'type';
 type FilterOption = 'all' | 'images' | 'videos';
 
-const GalleryPage: NextPage = () => {
+const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
   const router = useRouter();
-  const { slug } = router.query;
+  const { slug: querySlug } = router.query;
+  const slug = propSlug || querySlug;
   const [galleryData, setGalleryData] = useState<GalleryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);

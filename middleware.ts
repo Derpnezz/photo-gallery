@@ -20,11 +20,12 @@ export function middleware(request: NextRequest) {
 
   // Define allowed routes that can use GET
   const allowedGetRoutes = [
-    '/gallery/',
-    '/api/media/',
-    '/',
-    '/api/gallery/'
-  ]
+  '/gallery/',
+  '/api/media/',
+  '/api/gallery/',
+  '/media-storage/',
+  '/api/auth/',
+];
   
   // Check if this is an allowed GET route
   const isAllowedRoute = allowedGetRoutes.some(route => 
@@ -33,6 +34,11 @@ export function middleware(request: NextRequest) {
 
   // LOG ANY IP ADDRESS ATTEMPTING TO CONNECT
   //console.log(`📸 Incoming request from: ${ip}`)
+
+  // Allow public hash routes (e.g., /abc123/folder/subfolder)
+  if (pathname.match(/^\/[a-zA-Z0-9_-]{8}\/.*/)) {
+    return NextResponse.next();
+  }
 
   // BLOCK ALL NON-GET REQUESTS (except OPTIONS and HEAD)
   if (!allowedMethods.includes(method)) {
