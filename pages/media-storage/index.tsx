@@ -99,8 +99,6 @@ export default function MediaStorage() {
                 key={folder.slug}
                 href={`/${hash}/${folder.name}`}
                 className={styles.folderCard}
-                target="_blank"  // Add this to open in new tab
-                rel="noopener noreferrer"  // Security best practice
               >
                 <div className={styles.folderIcon}>📁</div>
                 <span className={styles.folderName}>{folder.name}</span>

@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { path: filePath } = req.query as { path: string[] };
@@ -10,7 +9,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     return res.status(400).json({ error: 'File path required' });
   }
 
-  const usbBasePath = path.join(os.homedir(), 'Pictures', 'photo-gallery-media');
+  const usbBasePath = '~/Pictures/photo-gallery-media';
+  
+  // Join all path parts with forward slashes
   const fullPath = path.join(usbBasePath, ...filePath);
   
   // Security check
@@ -48,44 +49,18 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
     const mimeType = mimeTypes[ext] || 'application/octet-stream';
     
-    // Handle range requests for video streaming
-    const range = req.headers.range;
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Length', stats.size.toString());
+    res.setHeader('Cache-Control', 'public, max-age=86400');
     
-    if (range && (mimeType.startsWith('video/') || mimeType.startsWith('audio/'))) {
-      const parts = range.replace(/bytes=/, "").split("-");
-      const start = parseInt(parts[0], 10);
-      const end = parts[1] ? parseInt(parts[1], 10) : stats.size - 1;
-      const chunkSize = (end - start) + 1;
-      
-      const file = fs.createReadStream(fullPath, { start, end });
-      
-      res.writeHead(206, {
-        'Content-Range': `bytes ${start}-${end}/${stats.size}`,
-        'Accept-Ranges': 'bytes',
-        'Content-Length': chunkSize,
-        'Content-Type': mimeType,
-        'Cache-Control': 'public, max-age=86400',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Range',
-      });
-      
-      file.pipe(res);
-    } else {
-      // For images or small files, serve normally with caching
-      res.setHeader('Content-Type', mimeType);
-      res.setHeader('Content-Length', stats.size.toString());
-      res.setHeader('Cache-Control', 'public, max-age=86400');
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Origin', 'https://xc.gabyee.dev');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-      const readStream = fs.createReadStream(fullPath);
-      readStream.pipe(res);
-    }
+    const readStream = fs.createReadStream(fullPath);
+    readStream.pipe(res);
     
   } catch (error) {
-    console.error('Error serving media:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 }
