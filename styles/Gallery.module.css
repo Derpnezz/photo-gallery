@@ -1,4 +1,3 @@
-
 .container {
   min-height: 100vh;
   background-color: #202124;
@@ -243,11 +242,13 @@
   font-size: 0.95rem;
 }
 
+/* Optimized media grid */
 .mediaGrid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 12px;
   margin-bottom: 2rem;
+  contain: layout style paint;
 }
 
 .mediaItem {
@@ -258,6 +259,7 @@
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   border: 2px solid #5f6368;
+  will-change: transform;
 }
 
 .mediaItem:hover {
@@ -302,6 +304,13 @@
   position: relative;
   width: 100%;
   height: 200px;
+  background: #000;
+}
+
+.videoThumbnail video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .playIcon {
@@ -341,6 +350,23 @@
   background: #303134;
   border-radius: 8px;
   border: 1px solid #5f6368;
+}
+
+/* Optimized placeholder with pulse animation */
+.placeholder {
+  background: #303134;
+  width: 100%;
+  min-height: 200px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
 }
 
 /* Lightbox styles */
@@ -542,6 +568,97 @@
   word-break: break-word;
 }
 
+/* Mobile Download Modal */
+.mobileDownloadModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+}
+
+.mobileDownloadModalContent {
+  background: #303134;
+  border-radius: 12px;
+  max-width: 90%;
+  width: 400px;
+  border: 1px solid #5f6368;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.mobileDownloadModalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #5f6368;
+}
+
+.mobileDownloadModalHeader h3 {
+  margin: 0;
+  color: #e8eaed;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.mobileDownloadModalClose {
+  background: none;
+  border: none;
+  color: #9aa0a6;
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.mobileDownloadModalClose:hover {
+  background-color: #3c4043;
+}
+
+.mobileDownloadModalBody {
+  padding: 1.5rem;
+  color: #9aa0a6;
+  line-height: 1.6;
+}
+
+.mobileDownloadModalBody p {
+  margin: 0;
+}
+
+.mobileDownloadModalFooter {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #5f6368;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mobileDownloadModalButton {
+  background: #8ab4f8;
+  color: #202124;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.mobileDownloadModalButton:hover {
+  background: #aecbfa;
+}
+
 /* Responsive design */
 @media (max-width: 1400px) {
   .mediaGrid {
@@ -680,103 +797,21 @@
   }
 }
 
-
-
-.placeholder {
-  background: #303134;
-  width: 100%;
-  min-height: 200px;
-}
-
-
-
-/* Mobile Download Modal */
-.mobileDownloadModal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-}
-
-.mobileDownloadModalContent {
-  background: #303134;
-  border-radius: 12px;
-  max-width: 90%;
-  width: 400px;
-  border: 1px solid #5f6368;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-}
-
-.mobileDownloadModalHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  border-bottom: 1px solid #5f6368;
-}
-
-.mobileDownloadModalHeader h3 {
-  margin: 0;
-  color: #e8eaed;
-  font-size: 1.25rem;
-  font-weight: 500;
-}
-
-.mobileDownloadModalClose {
-  background: none;
-  border: none;
-  color: #9aa0a6;
-  font-size: 2rem;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.mobileDownloadModalClose:hover {
-  background-color: #3c4043;
-}
-
-.mobileDownloadModalBody {
-  padding: 1.5rem;
-  color: #9aa0a6;
-  line-height: 1.6;
-}
-
-.mobileDownloadModalBody p {
-  margin: 0;
-}
-
-.mobileDownloadModalFooter {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #5f6368;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.mobileDownloadModalButton {
-  background: #8ab4f8;
-  color: #202124;
-  border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.mobileDownloadModalButton:hover {
-  background: #aecbfa;
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .placeholder {
+    animation: none;
+  }
+  .mediaItem {
+    transition: none;
+  }
+  .subFolderCard {
+    transition: none;
+  }
+  .subFolderCard:hover {
+    transform: none;
+  }
+  .mediaItem:hover {
+    transform: none;
+  }
 }

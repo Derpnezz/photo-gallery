@@ -49,10 +49,9 @@ interface SubFolder {
 type SortOption = 'name' | 'date' | 'size' | 'type';
 type FilterOption = 'all' | 'images' | 'videos';
 
-const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
+const GalleryPage: NextPage = () => {
   const router = useRouter();
-  const { slug: querySlug } = router.query;
-  const slug = propSlug || querySlug;
+  const { slug } = router.query;
   const [galleryData, setGalleryData] = useState<GalleryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<MediaFile | null>(null);
@@ -71,9 +70,7 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
 
   useEffect(() => {
     if (slug) {
-      // Handle both array slugs (nested folders) and string slugs
       const folderPath = Array.isArray(slug) ? slug.join('/') : slug;
-      console.log('🔄 Fetching data for slug:', slug, 'Path:', folderPath);
       fetchGalleryData(folderPath);
     }
   }, [slug]);
@@ -156,21 +153,14 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 Fetching gallery data for path:', folderPath);
       const apiUrl = `/api/gallery/${folderPath}`;
-      console.log('🔍 API URL:', apiUrl);
-      
       const response = await fetch(apiUrl);
       
-      console.log('🔍 Response status:', response.status, response.statusText);
-      
       if (!response.ok) {
-        // Read the response once and store it
         const responseText = await response.text();
         let errorDetails = '';
         
         try {
-          // Try to parse as JSON
           const errorData = JSON.parse(responseText);
           errorDetails = errorData.error || 'Unknown error';
           if (errorData.details) {
@@ -179,59 +169,43 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
           if (errorData.path) {
             errorDetails += ` at path: ${errorData.path}`;
           }
-          console.error('🔍 API Error details:', errorData);
         } catch {
-          // If not JSON, use the raw text
           errorDetails = responseText;
-          console.error('🔍 API Error text:', responseText);
         }
         
         throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorDetails}`);
       }
       
-      // For successful responses, parse as JSON
       const data = await response.json();
-      console.log('✅ Gallery data received successfully');
-      console.log('📁 Folder:', data.folder);
-      console.log('📊 Files count:', data.files?.length);
-      console.log('📁 Subfolders count:', data.subFolders?.length);
-      
       setGalleryData(data);
     } catch (error) {
-      console.error('❌ Error fetching gallery data:', error);
+      console.error('Error fetching gallery data:', error);
       setError(error instanceof Error ? error.message : 'Failed to load gallery');
     } finally {
       setLoading(false);
     }
   };
 
-  const generateBreadcrumbs = () => {
+  const generateFolderBreadcrumbs = () => {
     if (!galleryData) return [];
 
-    const breadcrumbs = [{ name: 'Home', path: '/' }];
-
     const fullPath = galleryData.fullPath || (Array.isArray(slug) ? slug.join('/') : slug || '');
+    
+    if (!fullPath) return [];
 
-    if (fullPath) {
-      const pathParts = fullPath.split('/');
-      let currentPath = '';
-      
-      pathParts.forEach((part, index) => {
-        currentPath += (index > 0 ? '/' : '') + part;
-        // Get the folder name for this level (the last part of currentPath)
-        const folderName = part;
-        const hash = getFolderHash(folderName);
-        breadcrumbs.push({
-          name: part,
-          path: `/${hash}/${currentPath}`
-        });
-      });
-    } else {
+    const pathParts = fullPath.split('/');
+    const breadcrumbs = [];
+    let currentPath = '';
+    
+    pathParts.forEach((part, index) => {
+      currentPath += (index > 0 ? '/' : '') + part;
+      const hash = getFolderHash(part);
       breadcrumbs.push({
-        name: galleryData.folder,
-        path: `/`
+        name: part,
+        path: `/${hash}/${currentPath}`
       });
-    }
+    });
+    
     return breadcrumbs;
   };
 
@@ -240,14 +214,12 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
 
     let files = [...galleryData.files];
 
-    // Apply filter
     if (filterBy === 'images') {
       files = files.filter(f => f.type === 'image');
     } else if (filterBy === 'videos') {
       files = files.filter(f => f.type === 'video');
     }
 
-    // Apply sort
     files.sort((a, b) => {
       switch (sortBy) {
         case 'name':
@@ -282,7 +254,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     link.click();
     document.body.removeChild(link);
 
-    // Show informational modal on mobile
     if (isMobile) {
       setMobileDownloadMessage('Your file has been downloaded and can be found in your Files app.');
       setShowMobileDownloadModal(true);
@@ -303,7 +274,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     const newSelected = new Set(selectedFiles);
 
     if (event.shiftKey && lastSelectedIndex !== null) {
-      // Shift+click: select range
       const displayedFiles = getSortedAndFilteredFiles();
       const start = Math.min(lastSelectedIndex, index);
       const end = Math.max(lastSelectedIndex, index);
@@ -312,7 +282,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
         newSelected.add(displayedFiles[i].publicPath);
       }
     } else {
-      // Regular click: toggle selection
       if (newSelected.has(file.publicPath)) {
         newSelected.delete(file.publicPath);
       } else {
@@ -343,7 +312,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     const JSZip = (await import('jszip')).default;
     const zip = new (JSZip as any)();
 
-    // Fetch and add files to zip
     for (const file of filesToDownload) {
       try {
         const response = await fetch(file.publicPath);
@@ -354,7 +322,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
       }
     }
 
-    // Generate and download zip
     const content = await zip.generateAsync({ type: 'blob' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(content);
@@ -364,7 +331,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
 
-    // Show informational modal on mobile
     if (isMobile) {
       setMobileDownloadMessage(`Your ZIP file with ${selectedFiles.size} photo(s) has been downloaded and can be found in your Files app.`);
       setShowMobileDownloadModal(true);
@@ -385,19 +351,15 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
         <div className={styles.error}>
           <h2>Error Loading Gallery</h2>
           <p>{error || 'Gallery not found'}</p>
-          <div className={styles.errorDetails}>
-            <p>Current slug: {JSON.stringify(slug)}</p>
-            <p>Check the browser console for detailed error information.</p>
-          </div>
-          <Link href="/" className={styles.backButton}>
-            ← Back to Home
+          <Link href="/media-storage" className={styles.backButton}>
+            ← Back to Storage
           </Link>
         </div>
       </div>
     );
   }
 
-  const breadcrumbs = generateBreadcrumbs();
+  const breadcrumbs = generateFolderBreadcrumbs();
 
   return (
     <div className={styles.container}>
@@ -407,18 +369,21 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
         <link rel="icon" href="/placeholder.png" />
       </Head>
 
-      <nav className={styles.breadcrumbs}>
-        {breadcrumbs.map((crumb, index) => (
-          <span key={index}>
-            {index < breadcrumbs.length - 1 ? (
-              <Link href={crumb.path}>{crumb.name}</Link>
-            ) : (
-              <span className={styles.currentCrumb}>{crumb.name}</span>
-            )}
-            {index < breadcrumbs.length - 1 && <span className={styles.separator}> / </span>}
-          </span>
-        ))}
-      </nav>
+      {/* Folder-only breadcrumbs - no home link */}
+      {breadcrumbs.length > 0 && (
+        <nav className={styles.breadcrumbs}>
+          {breadcrumbs.map((crumb, index) => (
+            <span key={index}>
+              {index < breadcrumbs.length - 1 ? (
+                <Link href={crumb.path}>{crumb.name}</Link>
+              ) : (
+                <span className={styles.currentCrumb}>{crumb.name}</span>
+              )}
+              {index < breadcrumbs.length - 1 && <span className={styles.separator}> / </span>}
+            </span>
+          ))}
+        </nav>
+      )}
 
       <main className={styles.main}>
         <h1 className={styles.title}>{galleryData.folder}</h1>
@@ -434,16 +399,19 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
           <div className={styles.subFoldersSection}>
             <h2 className={styles.sectionTitle}>Folders</h2>
             <div className={styles.subFoldersGrid}>
-              {galleryData.subFolders.map((folder) => (
-                <Link
-                  key={folder.slug}
-                  href={`/${getFolderHash(folder.name)}/${folder.slug}`}
-                  className={styles.subFolderCard}
-                >
-                  <div className={styles.folderIcon}>📁</div>
-                  <span className={styles.folderName}>{folder.name}</span>
-                </Link>
-              ))}
+              {galleryData.subFolders.map((folder) => {
+                const hash = getFolderHash(folder.name);
+                return (
+                  <Link
+                    key={folder.slug}
+                    href={`/${hash}/${folder.slug}`}
+                    className={styles.subFolderCard}
+                  >
+                    <div className={styles.folderIcon}>📁</div>
+                    <span className={styles.folderName}>{folder.name}</span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
@@ -549,30 +517,35 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
                   />
                 </div>
               )}
-              {!isVisible ? (
-                <div className={styles.placeholder} style={{ aspectRatio: '3/2' }} />
-              ) : file.type === 'image' ? (
-                <Image
-                  src={file.publicPath}
-                  alt={file.name}
-                  width={300}
-                  height={200}
-                  className={styles.thumbnail}
-                  style={{ objectFit: 'cover' }}
-                  loading="lazy"
-                  placeholder="blur"
-                  blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzMwMzEzNCIvPjwvc3ZnPg=="
-                  quality={75}
-                />
-              ) : (
-                <div className={styles.videoThumbnail}>
-                  <video
+              {isVisible ? (
+                file.type === 'image' ? (
+                  <Image
                     src={file.publicPath}
+                    alt={file.name}
+                    width={300}
+                    height={200}
                     className={styles.thumbnail}
                     style={{ objectFit: 'cover' }}
+                    loading="lazy"
+                    placeholder="blur"
+                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iIzMwMzEzNCIvPjwvc3ZnPg=="
+                    quality={75}
                   />
-                  <div className={styles.playIcon}>▶</div>
-                </div>
+                ) : (
+                  <div className={styles.videoThumbnail}>
+                    <video
+                      src={file.publicPath}
+                      className={styles.thumbnail}
+                      style={{ objectFit: 'cover' }}
+                      muted
+                      preload="metadata"
+                      playsInline
+                    />
+                    <div className={styles.playIcon}>▶</div>
+                  </div>
+                )
+              ) : (
+                <div className={styles.placeholder} style={{ aspectRatio: '3/2' }} />
               )}
               <div className={styles.mediaInfo}>
                 <div className={styles.mediaName}>{file.name}</div>
@@ -597,7 +570,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
       {selectedMedia && (
         <div className={styles.lightbox} onClick={closeLightbox}>
           <div className={styles.lightboxContent} onClick={(e) => e.stopPropagation()}>
-            {/* Top Controls */}
             <div className={styles.topControls}>
               <button
                 className={styles.infoButton}
@@ -618,7 +590,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
               </button>
             </div>
 
-            {/* Navigation Arrows */}
             <button
               className={`${styles.navButton} ${styles.prevButton}`}
               onClick={() => navigateMedia('prev')}
@@ -642,6 +613,7 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
                   height={800}
                   className={styles.lightboxMedia}
                   style={{ objectFit: 'contain' }}
+                  priority
                 />
               ) : (
                 <video
@@ -651,12 +623,16 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
                   className={styles.lightboxMedia}
                   style={{ objectFit: 'contain' }}
                   autoPlay
-                />
+                  playsInline
+                  preload="metadata"
+                >
+                  <source src={selectedMedia.publicPath} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
               )}
             </div>
           </div>
 
-          {/* Info Modal */}
           {showInfoModal && (
             <div className={styles.infoModal} onClick={() => setShowInfoModal(false)}>
               <div className={styles.infoModalContent} onClick={(e) => e.stopPropagation()}>
@@ -693,7 +669,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
         </div>
       )}
 
-      {/* Mobile Download Not Supported Modal */}
       {showMobileDownloadModal && (
         <div className={styles.mobileDownloadModal} onClick={() => setShowMobileDownloadModal(false)}>
           <div className={styles.mobileDownloadModalContent} onClick={(e) => e.stopPropagation()}>
