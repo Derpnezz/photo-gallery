@@ -20,11 +20,13 @@ const Portfolio: NextPage = () => {
 
   // Define your featured works with folder names (not pre-computed links)
   const featuredWorks = [
+    /*
     {
       title: "Northwest Track",
       folderName: "northwest-tf",  // Store folder name instead of link
       image: "/portfolio-images/cardinal-classic.png",
     },
+    */
     {
       title: "Northwest XC",
       folderName: null,  // No link - just a photo
@@ -32,18 +34,13 @@ const Portfolio: NextPage = () => {
     },
     {
       title: "Portraits",
-      folderName: "portraits",
-      image: "/portfolio-images/portraits.jpg",
+      folderName: null,
+      image: "/portfolio-images/cardinal-classic.png",
     },
     {
       title: "Mountain Sunset",
       folderName: null,  // No link - just decoration
       image: "/portfolio-images/mountain-sunset.jpg",
-    },
-    {
-      title: "Urban Life",
-      folderName: "urban",
-      image: "/portfolio-images/urban.jpg",
     },
     {
       title: "Abstract",
