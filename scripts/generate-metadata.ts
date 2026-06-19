@@ -1,6 +1,6 @@
+
 import * as fs from 'fs';
 import * as path from 'path';
-import * as os from 'os';
 
 interface FileMetadata {
   name: string;
@@ -23,8 +23,8 @@ interface MetadataIndex {
   [key: string]: FolderMetadata;
 }
 
-// Use os.homedir() to expand ~ properly
-const usbBasePath = path.join(os.homedir(), 'Pictures', 'photo-gallery-media');
+const os = require('os');
+const usbBasePath = os.homedir() + '/Pictures/photo-gallery-media';
 const outputPath = path.join(process.cwd(), 'public', 'metadata-index.json');
 
 function scanDirectory(dirPath: string, baseSlug: string = ''): MetadataIndex {
@@ -94,13 +94,6 @@ function scanDirectory(dirPath: string, baseSlug: string = ''): MetadataIndex {
 }
 
 console.log('🔍 Scanning directory structure...');
-console.log('📁 Looking for media at:', usbBasePath);
-
-if (!fs.existsSync(usbBasePath)) {
-  console.error('❌ Path not found:', usbBasePath);
-  process.exit(1);
-}
-
 const metadata = scanDirectory(usbBasePath);
 
 console.log(`✅ Found ${Object.keys(metadata).length} folders`);

@@ -2,12 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
-var os = require("os");
-
-// Use os.homedir() to expand ~ properly
-var usbBasePath = path.join(os.homedir(), 'Pictures', 'photo-gallery-media');
+var usbBasePath = '~/Pictures/photo-gallery-media';
 var outputPath = path.join(process.cwd(), 'public', 'metadata-index.json');
-
 function scanDirectory(dirPath, baseSlug) {
     if (baseSlug === void 0) { baseSlug = ''; }
     var index = {};
@@ -68,20 +64,9 @@ function scanDirectory(dirPath, baseSlug) {
     scan(dirPath, baseSlug);
     return index;
 }
-
 console.log('🔍 Scanning directory structure...');
-console.log('📁 Looking for media at:', usbBasePath);
-
-if (!fs.existsSync(usbBasePath)) {
-    console.error('❌ Path not found:', usbBasePath);
-    process.exit(1);
-}
-
 var metadata = scanDirectory(usbBasePath);
-
 console.log("\u2705 Found ".concat(Object.keys(metadata).length, " folders"));
 console.log("\uD83D\uDCBE Writing metadata to ".concat(outputPath));
-
 fs.writeFileSync(outputPath, JSON.stringify(metadata, null, 2));
-
 console.log('✨ Metadata index generated successfully!');

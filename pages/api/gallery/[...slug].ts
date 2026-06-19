@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 
 interface MediaFile {
   name: string;
@@ -62,9 +61,9 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
   const { slug } = req.query;
   
   console.log('🚀 Gallery API called with slug:', slug);
-  
-  // Use os.homedir() to expand ~ properly
-  const usbBasePath = path.join(os.homedir(), 'Pictures', 'photo-gallery-media');
+
+  const os = require('os');
+  const usbBasePath = os.homedir() + '/Pictures/photo-gallery-media';
   
   // Try to use cached metadata first
   const metadataIndex = loadMetadataIndex();

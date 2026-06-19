@@ -71,7 +71,6 @@ const GalleryPage: NextPage = () => {
   useEffect(() => {
     if (slug) {
       const folderPath = Array.isArray(slug) ? slug.join('/') : slug;
-      console.log('🔄 Fetching data for slug:', slug, 'Path:', folderPath);
       fetchGalleryData(folderPath);
     }
   }, [slug]);
@@ -154,13 +153,8 @@ const GalleryPage: NextPage = () => {
       setLoading(true);
       setError(null);
       
-      console.log('🔍 Fetching gallery data for path:', folderPath);
       const apiUrl = `/api/gallery/${folderPath}`;
-      console.log('🔍 API URL:', apiUrl);
-      
       const response = await fetch(apiUrl);
-      
-      console.log('🔍 Response status:', response.status, response.statusText);
       
       if (!response.ok) {
         const responseText = await response.text();
@@ -175,24 +169,17 @@ const GalleryPage: NextPage = () => {
           if (errorData.path) {
             errorDetails += ` at path: ${errorData.path}`;
           }
-          console.error('🔍 API Error details:', errorData);
         } catch {
           errorDetails = responseText;
-          console.error('🔍 API Error text:', responseText);
         }
         
         throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorDetails}`);
       }
       
       const data = await response.json();
-      console.log('✅ Gallery data received successfully');
-      console.log('📁 Folder:', data.folder);
-      console.log('📊 Files count:', data.files?.length);
-      console.log('📁 Subfolders count:', data.subFolders?.length);
-      
       setGalleryData(data);
     } catch (error) {
-      console.error('❌ Error fetching gallery data:', error);
+      console.error('Error fetching gallery data:', error);
       setError(error instanceof Error ? error.message : 'Failed to load gallery');
     } finally {
       setLoading(false);
@@ -364,10 +351,6 @@ const GalleryPage: NextPage = () => {
         <div className={styles.error}>
           <h2>Error Loading Gallery</h2>
           <p>{error || 'Gallery not found'}</p>
-          <div className={styles.errorDetails}>
-            <p>Current slug: {JSON.stringify(slug)}</p>
-            <p>Check the browser console for detailed error information.</p>
-          </div>
           <Link href="/media-storage" className={styles.backButton}>
             ← Back to Storage
           </Link>
