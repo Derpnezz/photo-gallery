@@ -205,33 +205,29 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     }
   };
 
-  const generateBreadcrumbs = () => {
+  // Generate folder-only breadcrumbs - NO HOME LINK
+  const generateFolderBreadcrumbs = () => {
     if (!galleryData) return [];
 
-    const breadcrumbs = [{ name: 'Home', path: '/' }];
-
     const fullPath = galleryData.fullPath || (Array.isArray(slug) ? slug.join('/') : slug || '');
+    
+    if (!fullPath) return [];
 
-    if (fullPath) {
-      const pathParts = fullPath.split('/');
-      let currentPath = '';
+    const pathParts = fullPath.split('/');
+    const breadcrumbs = [];
+    let currentPath = '';
+    
+    pathParts.forEach((part, index) => {
+      currentPath += (index > 0 ? '/' : '') + part;
+      const hash = getFolderHash(part);
       
-      pathParts.forEach((part, index) => {
-        currentPath += (index > 0 ? '/' : '') + part;
-        // Get the folder name for this level (the last part of currentPath)
-        const folderName = part;
-        const hash = getFolderHash(folderName);
-        breadcrumbs.push({
-          name: part,
-          path: `/${hash}/${currentPath}`
-        });
-      });
-    } else {
       breadcrumbs.push({
-        name: galleryData.folder,
-        path: `/`
+        name: part,
+        path: `/${hash}/${currentPath}`,
+        isLast: index === pathParts.length - 1
       });
-    }
+    });
+    
     return breadcrumbs;
   };
 
@@ -397,7 +393,7 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     );
   }
 
-  const breadcrumbs = generateBreadcrumbs();
+  const breadcrumbs = generateFolderBreadcrumbs();
 
   return (
     <div className={styles.container}>
@@ -407,18 +403,23 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
         <link rel="icon" href="/placeholder.png" />
       </Head>
 
-      <nav className={styles.breadcrumbs}>
-        {breadcrumbs.map((crumb, index) => (
-          <span key={index}>
-            {index < breadcrumbs.length - 1 ? (
-              <Link href={crumb.path}>{crumb.name}</Link>
-            ) : (
-              <span className={styles.currentCrumb}>{crumb.name}</span>
-            )}
-            {index < breadcrumbs.length - 1 && <span className={styles.separator}> / </span>}
-          </span>
-        ))}
-      </nav>
+      {/* Folder-only breadcrumbs - NO HOME LINK */}
+      {breadcrumbs.length > 0 && (
+        <nav className={styles.breadcrumbs}>
+          {breadcrumbs.map((crumb, index) => (
+            <span key={index}>
+              {!crumb.isLast ? (
+                <Link href={crumb.path} className={styles.breadcrumbLink}>
+                  {crumb.name}
+                </Link>
+              ) : (
+                <span className={styles.currentCrumb}>{crumb.name}</span>
+              )}
+              {!crumb.isLast && <span className={styles.separator}> / </span>}
+            </span>
+          ))}
+        </nav>
+      )}
 
       <main className={styles.main}>
         <h1 className={styles.title}>{galleryData.folder}</h1>

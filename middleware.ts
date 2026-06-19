@@ -40,6 +40,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // IMPORTANT: Skip middleware for Next.js image optimization
+  if (pathname.startsWith('/_next/image')) {
+    return NextResponse.next()
+  }
+
   // LOG ANY IP ADDRESS ATTEMPTING TO CONNECT
   //console.log(`📸 Incoming request from: ${ip}`)
 
@@ -62,6 +67,11 @@ export function middleware(request: NextRequest) {
   
   // BLOCK ALL REQUESTS WITH QUERY STRINGS (except ?slug= for allowed routes)
   if (searchParams.length > 0) {
+    // IMPORTANT: Allow query strings for Next.js image optimization
+    if (pathname.startsWith('/_next/image')) {
+      return NextResponse.next()
+    }
+    
     // Only allow query strings on allowed routes
     if (isAllowedRoute || pathname === '/') {
       // Check if query string contains only allowed parameters

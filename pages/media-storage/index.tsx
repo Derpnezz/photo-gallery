@@ -99,6 +99,8 @@ export default function MediaStorage() {
                 key={folder.slug}
                 href={`/${hash}/${folder.name}`}
                 className={styles.folderCard}
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <div className={styles.folderIcon}>📁</div>
                 <span className={styles.folderName}>{folder.name}</span>
