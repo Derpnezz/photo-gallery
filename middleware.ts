@@ -27,6 +27,7 @@ export function middleware(request: NextRequest) {
     '/api/gallery/',
     '/media-storage',
     '/api/auth/',
+    '/portfolio-images/'
   ]
   
   // Check if this is an allowed GET route
