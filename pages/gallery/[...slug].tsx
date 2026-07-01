@@ -31,6 +31,8 @@ interface MediaFile {
   type: 'image' | 'video';
   size: number;
   modified: string;
+  isPreview?: boolean;      // Added: indicates if this is a preview
+  originalPath?: string;    // Added: path to original full video
 }
 
 interface GalleryData {
@@ -71,7 +73,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
 
   useEffect(() => {
     if (slug) {
-      // Handle both array slugs (nested folders) and string slugs
       const folderPath = Array.isArray(slug) ? slug.join('/') : slug;
       console.log('🔄 Fetching data for slug:', slug, 'Path:', folderPath);
       fetchGalleryData(folderPath);
@@ -165,12 +166,10 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
       console.log('🔍 Response status:', response.status, response.statusText);
       
       if (!response.ok) {
-        // Read the response once and store it
         const responseText = await response.text();
         let errorDetails = '';
         
         try {
-          // Try to parse as JSON
           const errorData = JSON.parse(responseText);
           errorDetails = errorData.error || 'Unknown error';
           if (errorData.details) {
@@ -181,7 +180,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
           }
           console.error('🔍 API Error details:', errorData);
         } catch {
-          // If not JSON, use the raw text
           errorDetails = responseText;
           console.error('🔍 API Error text:', responseText);
         }
@@ -189,7 +187,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
         throw new Error(`HTTP ${response.status}: ${response.statusText}. ${errorDetails}`);
       }
       
-      // For successful responses, parse as JSON
       const data = await response.json();
       console.log('✅ Gallery data received successfully');
       console.log('📁 Folder:', data.folder);
@@ -236,14 +233,12 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
 
     let files = [...galleryData.files];
 
-    // Apply filter
     if (filterBy === 'images') {
       files = files.filter(f => f.type === 'image');
     } else if (filterBy === 'videos') {
       files = files.filter(f => f.type === 'video');
     }
 
-    // Apply sort
     files.sort((a, b) => {
       switch (sortBy) {
         case 'name':
@@ -271,14 +266,18 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
   };
 
   const downloadMedia = async (media: MediaFile) => {
+    // Use originalPath if it's a preview, otherwise use publicPath
+    const downloadUrl = media.originalPath ? 
+      `${media.originalPath}?download=true` : 
+      media.publicPath;
+    
     const link = document.createElement('a');
-    link.href = media.publicPath;
+    link.href = downloadUrl;
     link.download = media.name;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    // Show informational modal on mobile
     if (isMobile) {
       setMobileDownloadMessage('Your file has been downloaded and can be found in your Files app.');
       setShowMobileDownloadModal(true);
@@ -299,7 +298,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     const newSelected = new Set(selectedFiles);
 
     if (event.shiftKey && lastSelectedIndex !== null) {
-      // Shift+click: select range
       const displayedFiles = getSortedAndFilteredFiles();
       const start = Math.min(lastSelectedIndex, index);
       const end = Math.max(lastSelectedIndex, index);
@@ -308,7 +306,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
         newSelected.add(displayedFiles[i].publicPath);
       }
     } else {
-      // Regular click: toggle selection
       if (newSelected.has(file.publicPath)) {
         newSelected.delete(file.publicPath);
       } else {
@@ -339,10 +336,11 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     const JSZip = (await import('jszip')).default;
     const zip = new (JSZip as any)();
 
-    // Fetch and add files to zip
     for (const file of filesToDownload) {
       try {
-        const response = await fetch(file.publicPath);
+        // Use originalPath if it's a preview
+        const downloadUrl = file.originalPath || file.publicPath;
+        const response = await fetch(downloadUrl);
         const blob = await response.blob();
         zip.file(file.name, blob);
       } catch (error) {
@@ -350,7 +348,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
       }
     }
 
-    // Generate and download zip
     const content = await zip.generateAsync({ type: 'blob' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(content);
@@ -360,7 +357,6 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
 
-    // Show informational modal on mobile
     if (isMobile) {
       setMobileDownloadMessage(`Your ZIP file with ${selectedFiles.size} photo(s) has been downloaded and can be found in your Files app.`);
       setShowMobileDownloadModal(true);
@@ -576,9 +572,11 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
                     playsInline
                   />
                   <div className={styles.playIcon}>▶</div>
-                  <div className={styles.videoPreviewBadge}>
-                    <span>15s preview</span>
-                  </div>
+                  {file.isPreview && (
+                    <div className={styles.videoPreviewBadge}>
+                      <span>15s preview</span>
+                    </div>
+                  )}
                 </div>
               )}
               <div className={styles.mediaInfo}>
@@ -662,23 +660,22 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
                     playsInline
                     preload="metadata"
                   />
-                  <div className={styles.videoDownloadHint}>
-                    <p>📹 Preview: First 15 seconds shown</p>
-                    <button 
-                      className={styles.downloadFullButton}
-                      onClick={() => {
-                        // Trigger download of full video
-                        const link = document.createElement('a');
-                        link.href = `${selectedMedia.publicPath}?download=true`;
-                        link.download = selectedMedia.name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                    >
-                      ⬇ Download Full Video ({selectedMedia.name})
-                    </button>
-                  </div>
+                  {selectedMedia.isPreview && (
+                    <div className={styles.videoDownloadHint}>
+                      <p>📹 Preview: First 15 seconds shown</p>
+                      <button 
+                        className={styles.downloadFullButton}
+                        onClick={() => {
+                          const downloadUrl = selectedMedia.originalPath ? 
+                            `${selectedMedia.originalPath}?download=true` : 
+                            `${selectedMedia.publicPath}?download=true`;
+                          window.location.href = downloadUrl;
+                        }}
+                      >
+                        ⬇ Download Full Video
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
