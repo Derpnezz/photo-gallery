@@ -780,3 +780,58 @@
 .mobileDownloadModalButton:hover {
   background: #aecbfa;
 }
+
+.videoPreviewBadge {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  z-index: 5;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.videoPlayerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  max-height: 80vh;
+}
+
+.videoDownloadHint {
+  background: rgba(0, 0, 0, 0.8);
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  text-align: center;
+  color: #e8eaed;
+  border: 1px solid #5f6368;
+}
+
+.videoDownloadHint p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  color: #9aa0a6;
+}
+
+.downloadFullButton {
+  padding: 0.6rem 1.5rem;
+  background: #8ab4f8;
+  color: #202124;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.downloadFullButton:hover {
+  background: #669df6;
+}
