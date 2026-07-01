@@ -122,7 +122,7 @@ const Portfolio: NextPage = () => {
           <p>
             I&apos;ve been experimenting with iPhone action photography and 
             independently shooting and editing videos. Most of my work so far 
-            has been for my school's sports teams.
+            has been for my school&apos;s sports teams.
           </p>
         </div>
       </section>
