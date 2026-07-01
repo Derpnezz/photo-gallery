@@ -571,14 +571,8 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
                     src={file.publicPath}
                     className={styles.thumbnail}
                     style={{ objectFit: 'cover' }}
-                    muted
-                    preload="metadata"
-                    playsInline
                   />
                   <div className={styles.playIcon}>▶</div>
-                  <div className={styles.videoPreviewBadge}>
-                    <span>15s preview</span>
-                  </div>
                 </div>
               )}
               <div className={styles.mediaInfo}>
@@ -651,35 +645,14 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
                   style={{ objectFit: 'contain' }}
                 />
               ) : (
-                <div className={styles.videoPlayerContainer}>
-                  <video
-                    src={selectedMedia.publicPath}
-                    controls
-                    controlsList="nodownload"
-                    className={styles.lightboxMedia}
-                    style={{ objectFit: 'contain' }}
-                    autoPlay
-                    playsInline
-                    preload="metadata"
-                  />
-                  <div className={styles.videoDownloadHint}>
-                    <p>📹 Preview: First 15 seconds shown</p>
-                    <button 
-                      className={styles.downloadFullButton}
-                      onClick={() => {
-                        // Trigger download of full video
-                        const link = document.createElement('a');
-                        link.href = `${selectedMedia.publicPath}?download=true`;
-                        link.download = selectedMedia.name;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
-                    >
-                      ⬇ Download Full Video ({selectedMedia.name})
-                    </button>
-                  </div>
-                </div>
+                <video
+                  src={selectedMedia.publicPath}
+                  controls
+                  controlsList="nodownload"
+                  className={styles.lightboxMedia}
+                  style={{ objectFit: 'contain' }}
+                  autoPlay
+                />
               )}
             </div>
           </div>
