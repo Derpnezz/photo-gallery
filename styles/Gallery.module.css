@@ -781,85 +781,11 @@
   background: #aecbfa;
 }
 
-/* Video preview overlay for thumbnails */
-.videoPreviewOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.8);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  padding: 1rem;
-  color: #e8eaed;
-  text-align: center;
-}
-
-.videoPreviewOverlay span {
-  margin-bottom: 0.8rem;
-  font-size: 0.9rem;
-}
-
-.downloadVideoButton {
-  padding: 0.5rem 1.2rem;
-  background: #8ab4f8;
-  color: #202124;
-  border: none;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.downloadVideoButton:hover {
-  background: #669df6;
-}
-
-/* Video preview error in lightbox */
-.videoPreviewError {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.9);
-  z-index: 5;
-}
-
-.videoPreviewError p {
-  margin: 0.5rem 0;
-}
-
-.videoPreviewError .downloadFullButton {
-  padding: 0.8rem 2rem;
-  background: #8ab4f8;
-  color: #202124;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.videoPreviewError .downloadFullButton:hover {
-  background: #669df6;
-}
-
-/* Video badge */
 .videoPreviewBadge {
   position: absolute;
   bottom: 8px;
   right: 8px;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.8);
   color: #fff;
   padding: 4px 10px;
   border-radius: 12px;
@@ -870,7 +796,6 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Video container in lightbox */
 .videoPlayerContainer {
   display: flex;
   flex-direction: column;
@@ -878,7 +803,6 @@
   gap: 1rem;
   width: 100%;
   max-height: 80vh;
-  position: relative;
 }
 
 .videoDownloadHint {
@@ -888,10 +812,6 @@
   text-align: center;
   color: #e8eaed;
   border: 1px solid #5f6368;
-  width: 100%;
-  max-width: 500px;
-  z-index: 10;
-  position: relative;
 }
 
 .videoDownloadHint p {
