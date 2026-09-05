@@ -171,7 +171,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
           const stats = fs.statSync(filePath);
           const ext = path.extname(file.name).toLowerCase();
           
-          const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'].includes(ext);
+          const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.arw'].includes(ext);
           const isVideo = ['.mp4', '.avi', '.mov', '.mkv', '.webm'].includes(ext);
           
           if (!isImage && !isVideo) {

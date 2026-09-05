@@ -65,6 +65,7 @@ function serveFile(filePath: string, req: NextApiRequest, res: NextApiResponse) 
       '.gif': 'image/gif',
       '.bmp': 'image/bmp',
       '.webp': 'image/webp',
+      '.arw': 'image/arw',
       '.mp4': 'video/mp4',
       '.avi': 'video/x-msvideo',
       '.mov': 'video/quicktime',

@@ -721,6 +721,10 @@ const GalleryPage: NextPage<{ slug?: string[] }> = ({ slug: propSlug }) => {
           </div>
         </div>
       )}
+   
+      <footer className={styles.footer}>
+        <p>© {new Date().getFullYear()} Gabriel Yee.<br />Photos may be used freely for personal use but cannot be used for commercial purposes or monetary gain without permission.</p>
+      </footer>
     </div>
   );
 };

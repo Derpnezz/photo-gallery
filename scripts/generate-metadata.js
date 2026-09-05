@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var path = require("path");
-var usbBasePath = '~/Pictures/photo-gallery-media';
+var os = require('os');
+var usbBasePath = os.homedir() + '/Pictures/photo-gallery-media';
 var outputPath = path.join(process.cwd(), 'public', 'metadata-index.json');
 function scanDirectory(dirPath, baseSlug) {
     if (baseSlug === void 0) { baseSlug = ''; }
@@ -19,7 +20,7 @@ function scanDirectory(dirPath, baseSlug) {
             if (item.isFile()) {
                 var filePath = path.join(currentPath, item.name);
                 var ext = path.extname(item.name).toLowerCase();
-                var isImage = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'].includes(ext);
+                var isImage = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.arw'].includes(ext);
                 var isVideo = ['.mp4', '.avi', '.mov', '.mkv', '.webm'].includes(ext);
                 if (isImage || isVideo) {
                     try {

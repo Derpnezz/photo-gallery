@@ -44,7 +44,7 @@ function scanDirectory(dirPath: string, baseSlug: string = ''): MetadataIndex {
         const filePath = path.join(currentPath, item.name);
         const ext = path.extname(item.name).toLowerCase();
         
-        const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'].includes(ext);
+        const isImage = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.arw'].includes(ext);
         const isVideo = ['.mp4', '.avi', '.mov', '.mkv', '.webm'].includes(ext);
         
         if (isImage || isVideo) {
